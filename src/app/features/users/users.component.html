@@ -1,0 +1,45 @@
+<h1 class="page-title">Gestión de usuarios</h1>
+<p class="page-subtitle">Administra usuarios de plataforma, roles y estado de acceso.</p>
+
+<mat-card class="section-card form-card">
+  <h2>Gestión de usuarios</h2>
+  <form [formGroup]="form" (ngSubmit)="create()" class="form-grid">
+    <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="name" /></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Contraseña</mat-label><input matInput type="password" formControlName="password" /></mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Rol</mat-label>
+      <select matNativeControl formControlName="role">
+        <option value="ADMIN">ADMIN</option>
+        <option value="GERENTE">GERENTE</option>
+        <option value="COLABORADOR">COLABORADOR</option>
+      </select>
+    </mat-form-field>
+    <button mat-flat-button class="primary-btn" type="submit" [disabled]="saving()">
+      {{ saving() ? 'Guardando...' : (editingUserId() ? 'Guardar cambios' : 'Crear usuario') }}
+    </button>
+    <button mat-button type="button" (click)="cancelEdit()" *ngIf="editingUserId()">Cancelar</button>
+  </form>
+</mat-card>
+
+<mat-card class="section-card table-card">
+  <table mat-table [dataSource]="users()">
+    <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Nombre</th><td mat-cell *matCellDef="let user">{{ user.name }}</td></ng-container>
+    <ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let user">{{ user.email }}</td></ng-container>
+    <ng-container matColumnDef="role"><th mat-header-cell *matHeaderCellDef>Rol</th><td mat-cell *matCellDef="let user">{{ user.role }}</td></ng-container>
+    <ng-container matColumnDef="active">
+      <th mat-header-cell *matHeaderCellDef>Activo</th>
+      <td mat-cell *matCellDef="let user">
+        <mat-slide-toggle [checked]="user.active" (change)="toggle(user)"></mat-slide-toggle>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+      <td mat-cell *matCellDef="let user">
+        <button mat-button type="button" (click)="edit(user)">Editar</button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+  </table>
+</mat-card>

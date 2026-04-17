@@ -1,0 +1,48 @@
+<h1 class="page-title">Tareas</h1>
+<p class="page-subtitle">Crea, actualiza y asigna tareas por proyecto.</p>
+
+<mat-card class="section-card form-card">
+  <h2>Crear tarea</h2>
+  <form [formGroup]="form" (ngSubmit)="create()" class="form-grid">
+    <mat-form-field appearance="outline"><mat-label>Título</mat-label><input matInput formControlName="title" /></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput formControlName="description" /></mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="PENDING">Pendiente</mat-option>
+        <mat-option value="IN_PROGRESS">En proceso</mat-option>
+        <mat-option value="DONE">Finalizada</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Prioridad</mat-label>
+      <mat-select formControlName="priority">
+        <mat-option value="LOW">Baja</mat-option>
+        <mat-option value="MEDIUM">Media</mat-option>
+        <mat-option value="HIGH">Alta</mat-option>
+        <mat-option value="URGENT">Urgente</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Asignados (IDs separados por coma)</mat-label>
+      <input matInput formControlName="assigneeIdsText" />
+    </mat-form-field>
+    <button mat-flat-button class="primary-btn" type="submit" [disabled]="form.invalid || !projectId">
+      {{ editingTaskId() ? 'Actualizar' : 'Guardar' }}
+    </button>
+    <button mat-button type="button" (click)="cancelEdit()" *ngIf="editingTaskId()">Cancelar</button>
+  </form>
+</mat-card>
+
+<section class="task-list">
+  @for (task of tasks(); track task.id) {
+    <mat-card class="task-card section-card">
+      <h3>{{ task.title }}</h3>
+      <p>{{ task.description }}</p>
+      <small>{{ task.status }} · {{ task.priority }}</small>
+      <div class="task-actions">
+        <button mat-button type="button" (click)="edit(task)">Editar</button>
+      </div>
+    </mat-card>
+  }
+</section>

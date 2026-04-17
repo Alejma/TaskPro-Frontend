@@ -1,0 +1,145 @@
+@if (project(); as p) {
+  <mat-card class="detail-card section-card">
+    <div class="header-row">
+      <div>
+        <h2>{{ p.name }}</h2>
+        <p>{{ p.description }}</p>
+      </div>
+      <a mat-flat-button class="primary-btn" [routerLink]="['/kanban', p.id]">Abrir Kanban</a>
+    </div>
+
+    <div class="meta">
+      <span><strong>Estado:</strong> {{ p.status }}</span>
+      <span><strong>Miembros:</strong> {{ selectedProjectMembers().length }}</span>
+    </div>
+  </mat-card>
+
+  <mat-card class="section-card section-spacing">
+    <h3>Miembros del proyecto</h3>
+    <p class="subtitle">Solo GERENTE y ADMIN pueden asignar usuarios a proyectos.</p>
+
+    @if (!canAssignPeople()) {
+      <div class="permission-note">Vista de solo lectura: necesitas rol GERENTE o ADMIN para asignar personas.</div>
+    }
+
+    @if (canAssignPeople()) {
+      <div class="assign-row">
+        <mat-form-field>
+          <mat-label>Buscar usuario por correo</mat-label>
+          <input
+            matInput
+            [value]="memberEmailQuery()"
+            (input)="setMemberEmailQuery($any($event.target).value)"
+            [matAutocomplete]="membersAuto"
+            placeholder="correo@dominio.com"
+          />
+          <mat-autocomplete #membersAuto="matAutocomplete">
+            @for (user of filteredUsersForMembers(); track user.id) {
+              <mat-option (click)="addMemberToProject(user)">{{ user.email }} - {{ user.name }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+        <button mat-flat-button class="primary-btn" (click)="saveProjectMembers()" [disabled]="savingMembers()">
+          {{ savingMembers() ? 'Guardando...' : 'Guardar miembros' }}
+        </button>
+      </div>
+    }
+
+    <div class="chips">
+      @for (user of selectedProjectMembers(); track user.id) {
+        <mat-chip [removable]="canAssignPeople()" (removed)="removeMemberFromProject(user.id)">
+          {{ user.name }} ({{ user.email }})
+          @if (canAssignPeople()) {
+            <button matChipRemove>Quitar</button>
+          }
+        </mat-chip>
+      }
+    </div>
+  </mat-card>
+
+  <mat-card class="section-card section-spacing">
+    <h3>Nueva tarea del proyecto</h3>
+    <form [formGroup]="taskForm" (ngSubmit)="createTask()" class="task-form">
+      <mat-form-field><mat-label>Titulo</mat-label><input matInput formControlName="title" /></mat-form-field>
+      <mat-form-field><mat-label>Descripcion</mat-label><input matInput formControlName="description" /></mat-form-field>
+      <mat-form-field>
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="PENDING">Pendiente</mat-option>
+          <mat-option value="IN_PROGRESS">En proceso</mat-option>
+          <mat-option value="DONE">Finalizada</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Prioridad</mat-label>
+        <mat-select formControlName="priority">
+          <mat-option value="LOW">Baja</mat-option>
+          <mat-option value="MEDIUM">Media</mat-option>
+          <mat-option value="HIGH">Alta</mat-option>
+          <mat-option value="URGENT">Urgente</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field><mat-label>Fecha limite</mat-label><input matInput type="date" formControlName="dueDate" /></mat-form-field>
+
+      @if (canAssignPeople()) {
+        <mat-form-field class="full-row">
+          <mat-label>Asignar por correo</mat-label>
+          <input
+            matInput
+            [value]="taskEmailQuery()"
+            (input)="setTaskEmailQuery($any($event.target).value)"
+            [matAutocomplete]="taskUsersAuto"
+            placeholder="correo@dominio.com"
+          />
+          <mat-autocomplete #taskUsersAuto="matAutocomplete">
+            @for (user of filteredUsersForTask(); track user.id) {
+              <mat-option (click)="addTaskAssignee(user)">{{ user.email }} - {{ user.name }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      } @else {
+        <div class="permission-note full-row">Solo GERENTE o ADMIN puede asignar usuarios a tareas.</div>
+      }
+
+      <div class="chips full-row">
+        @for (user of selectedTaskAssignees(); track user.id) {
+          <mat-chip [removable]="canAssignPeople()" (removed)="removeTaskAssignee(user.id)">
+            {{ user.name }} ({{ user.email }})
+            @if (canAssignPeople()) {
+              <button matChipRemove>Quitar</button>
+            }
+          </mat-chip>
+        }
+      </div>
+
+      <button mat-flat-button class="primary-btn" type="submit" [disabled]="savingTask()">
+        {{ savingTask() ? 'Creando...' : 'Crear tarea' }}
+      </button>
+    </form>
+  </mat-card>
+
+  <mat-card class="section-card section-spacing">
+    <h3>Tareas del proyecto</h3>
+    <div class="task-list">
+      @for (task of projectTasks(); track task.id) {
+        <div class="task-item">
+          <div>
+            <strong>{{ task.title }}</strong>
+            <p>{{ task.description }}</p>
+            <small>{{ task.status }} · {{ task.priority }}</small>
+          </div>
+          <div class="assignees">
+            @for (assigneeId of task.assigneeIds; track assigneeId) {
+              <span>{{ getUserNameById(assigneeId) }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </mat-card>
+} @else {
+  <mat-card class="section-card section-spacing">
+    <h3>No se pudo cargar el proyecto</h3>
+    <p class="subtitle">Verifica que el proyecto exista o recarga la página.</p>
+  </mat-card>
+}

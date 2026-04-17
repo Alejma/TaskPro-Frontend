@@ -1,0 +1,87 @@
+@use '@angular/material' as mat;
+
+:root {
+  --bright-lavender: #a491d3;
+  --lavender-grey: #818aa3;
+  --tea-green: #c5dca0;
+  --lemon-chiffon: #f5f2b8;
+  --almond-silk: #f9dad0;
+  --text-primary: #272a36;
+  --text-muted: #6f7690;
+  --border-light: #ececf1;
+  --surface-soft: #f7f8fc;
+  --surface-strong: #ffffff;
+  --shadow-soft: 0 12px 24px rgba(50, 56, 71, 0.08);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text-primary);
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  line-height: 1.35;
+}
+
+.mat-mdc-card,
+.mat-mdc-table {
+  border-radius: 12px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+.page-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.section-card {
+  border: 1px solid var(--border-light) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-strong) !important;
+}
+
+.primary-btn {
+  background: var(--bright-lavender) !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+}
+
+.soft-btn {
+  background: #f3eefc !important;
+  color: #56447f !important;
+  border-radius: 10px !important;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}

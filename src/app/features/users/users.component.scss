@@ -1,0 +1,13 @@
+.form-card { margin-bottom: 14px; padding: 20px; }
+h2 { margin-bottom: 12px; font-size: 18px; }
+.form-grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+.table-card { overflow: auto; padding: 10px; }
+th { color: #6d7590; font-size: 12px; text-transform: uppercase; }
+td { color: #2a3042; font-size: 14px; }
+.primary-btn { min-height: 44px; }
+@media (max-width: 1040px) {
+  .form-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+}
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; }
+}

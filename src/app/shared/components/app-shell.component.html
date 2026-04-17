@@ -1,0 +1,26 @@
+<mat-sidenav-container class="shell-container">
+  <mat-sidenav mode="side" opened class="shell-sidenav">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span>TaskPro</span>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active"><mat-icon>home</mat-icon>Dashboard</a>
+      <a mat-list-item routerLink="/projects" routerLinkActive="active"><mat-icon>folder</mat-icon>Proyectos</a>
+      <a mat-list-item routerLink="/tasks" routerLinkActive="active"><mat-icon>task_alt</mat-icon>Tareas</a>
+      <a mat-list-item routerLink="/users" routerLinkActive="active" *ngIf="isAdmin()"><mat-icon>group</mat-icon>Usuarios</a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="shell-toolbar">
+      <span class="search-fake">Buscar...</span>
+      <span class="toolbar-spacer"></span>
+      <span class="user-pill">{{ userName() }}</span>
+      <button mat-flat-button class="soft-btn" (click)="logout()">Salir</button>
+    </mat-toolbar>
+    <main class="shell-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

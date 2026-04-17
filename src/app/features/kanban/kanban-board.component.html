@@ -1,0 +1,30 @@
+<h1 class="page-title">Tablero Kanban</h1>
+<p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado.</p>
+
+<section class="kanban-board">
+  @for (column of columns; track column.status) {
+    <section class="kanban-column">
+      <header>
+        <h3>{{ column.title }}</h3>
+        <span class="badge">{{ tasksByStatus()[column.status].length }}</span>
+      </header>
+
+      <div
+        cdkDropList
+        [id]="column.status"
+        [cdkDropListData]="tasksByStatus()[column.status]"
+        [cdkDropListConnectedTo]="dropListIds"
+        class="task-drop-zone"
+        (cdkDropListDropped)="drop($event)"
+      >
+        @for (task of tasksByStatus()[column.status]; track task.id) {
+          <mat-card cdkDrag class="task-card">
+            <h4>{{ task.title }}</h4>
+            <p>{{ task.description }}</p>
+            <mat-chip class="priority-chip">{{ task.priority }}</mat-chip>
+          </mat-card>
+        }
+      </div>
+    </section>
+  }
+</section>

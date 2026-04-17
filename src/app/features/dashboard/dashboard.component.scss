@@ -1,0 +1,7 @@
+.stats-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 12px; }
+.dashboard-card { padding: 20px; min-height: 120px; }
+h3 { font-size: 14px; color: #737b95; margin-bottom: 12px; }
+strong { font-size: 34px; color: #272a36; }
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
