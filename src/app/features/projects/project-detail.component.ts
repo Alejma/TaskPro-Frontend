@@ -157,21 +157,26 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   createTask(): void {
-    const id = this.projectId();
-    if (!id || this.taskForm.invalid || this.savingTask()) {
+    const projectId = this.projectId();
+    if (!projectId || this.taskForm.invalid || this.savingTask()) {
       this.taskForm.markAllAsTouched();
       return;
     }
 
     this.savingTask.set(true);
+    const formValue = this.taskForm.getRawValue();
+    const taskPayload = {
+      title: formValue.title,
+      description: formValue.description,
+      status: this.taskForm.controls.status.value as any,
+      priority: this.taskForm.controls.priority.value as any,
+      dueDate: formValue.dueDate,
+      assigneeIds: this.canAssignPeople() ? this.taskAssigneeIds() : [],
+      projectId: projectId
+    };
+    
     this.tasksService
-      .createTask(id, {
-        ...this.taskForm.getRawValue(),
-        status: this.taskForm.controls.status.value,
-        priority: this.taskForm.controls.priority.value,
-        assigneeIds: this.canAssignPeople() ? this.taskAssigneeIds() : [],
-        projectId: id
-      })
+      .createTask(projectId, taskPayload)
       .pipe(finalize(() => this.savingTask.set(false)))
       .subscribe({
         next: (task) => {
@@ -179,7 +184,7 @@ export class ProjectDetailComponent implements OnInit {
           if (normalizedTask) {
             this.projectTasks.update((tasks) => [normalizedTask, ...tasks]);
           } else {
-            this.loadProjectTasks(id);
+            this.loadProjectTasks(projectId);
           }
           this.taskForm.reset({
             title: '',

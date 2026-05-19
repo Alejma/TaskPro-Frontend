@@ -19,9 +19,44 @@
       >
         @for (task of tasksByStatus()[column.status]; track task.id) {
           <mat-card cdkDrag class="task-card">
-            <h4>{{ task.title }}</h4>
-            <p>{{ task.description }}</p>
-            <mat-chip class="priority-chip">{{ task.priority }}</mat-chip>
+            <div class="task-header">
+              <h4 class="task-title">{{ task.title }}</h4>
+              @if (task.priority) {
+                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                  {{ task.priority }}
+                </span>
+              }
+              @if (canDelete) {
+                <button mat-icon-button color="warn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+            
+            @if (task.description && task.description.trim().length > 0) {
+              <p class="task-description">{{ task.description }}</p>
+            } @else {
+              <p class="task-description empty">Sin descripción</p>
+            }
+            
+            <div class="task-footer">
+              @if (task.assigneeIds && task.assigneeIds.length > 0) {
+                <div class="assignees">
+                  @for (assigneeId of task.assigneeIds; track assigneeId) {
+                    <div 
+                      class="avatar" 
+                      [style.background-color]="getAvatarColor(assigneeId)"
+                      [matTooltip]="getUserNameById(assigneeId)"
+                      matTooltipPosition="above"
+                    >
+                      {{ getUserInitials(assigneeId) }}
+                    </div>
+                  }
+                </div>
+              } @else {
+                <span class="no-assignees">Sin asignar</span>
+              }
+            </div>
           </mat-card>
         }
       </div>

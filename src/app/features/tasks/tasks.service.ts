@@ -25,6 +25,10 @@ export class TasksService {
     return this.http.patch<Task>(`${API_URL}/${taskId}/status`, { status });
   }
 
+  deleteTask(taskId: string): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/${taskId}`);
+  }
+
   getKanbanByProject(projectId: string): Observable<KanbanResponse> {
     return this.http.get<KanbanResponse>(`${API_URL}/kanban/${projectId}`);
   }
