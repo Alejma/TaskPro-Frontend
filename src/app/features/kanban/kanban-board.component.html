@@ -1,5 +1,5 @@
 <h1 class="page-title">Tablero Kanban</h1>
-<p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado.</p>
+<p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado. Haz clic en una tarjeta para ver todos los detalles.</p>
 
 <section class="kanban-board">
   @for (column of columns; track column.status) {
@@ -18,33 +18,56 @@
         (cdkDropListDropped)="drop($event)"
       >
         @for (task of tasksByStatus()[column.status]; track task.id) {
-          <mat-card cdkDrag class="task-card">
+          <mat-card cdkDrag class="task-card task-card--interactive" (click)="openTaskDetail(task)">
             <div class="task-header">
               <h4 class="task-title">{{ task.title }}</h4>
-              @if (task.priority) {
-                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
-                  {{ task.priority }}
-                </span>
-              }
-              @if (canDelete) {
-                <button mat-icon-button color="warn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status)">
-                  <mat-icon>delete</mat-icon>
+              <div class="task-header-actions">
+                @if (task.priority) {
+                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                    {{ task.priority }}
+                  </span>
+                }
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Ver detalles de la tarea"
+                  (click)="openTaskDetail(task, $event)"
+                >
+                  <mat-icon>info</mat-icon>
                 </button>
-              }
+                @if (canDelete) {
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    aria-label="Eliminar tarea"
+                    (click)="onDeleteTask(task.id, task.status); $event.stopPropagation()"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </div>
             </div>
-            
+
             @if (task.description && task.description.trim().length > 0) {
               <p class="task-description">{{ task.description }}</p>
             } @else {
               <p class="task-description empty">Sin descripción</p>
             }
-            
+
+            @if (formatDueDate(task.dueDate); as dueLabel) {
+              <p class="task-due-date">
+                <mat-icon>event</mat-icon>
+                {{ dueLabel }}
+              </p>
+            }
+
             <div class="task-footer">
               @if (task.assigneeIds && task.assigneeIds.length > 0) {
                 <div class="assignees">
                   @for (assigneeId of task.assigneeIds; track assigneeId) {
-                    <div 
-                      class="avatar" 
+                    <div
+                      class="avatar"
                       [style.background-color]="getAvatarColor(assigneeId)"
                       [matTooltip]="getUserNameById(assigneeId)"
                       matTooltipPosition="above"
@@ -56,6 +79,7 @@
               } @else {
                 <span class="no-assignees">Sin asignar</span>
               }
+              <span class="view-detail-hint">Ver detalles</span>
             </div>
           </mat-card>
         }

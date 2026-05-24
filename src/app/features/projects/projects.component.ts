@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 import { Project } from '../../core/models/project.model';
 import { ProjectsService } from './projects.service';
 
@@ -31,9 +32,14 @@ import { ProjectsService } from './projects.service';
 })
 export class ProjectsComponent implements OnInit {
   private readonly projectsService = inject(ProjectsService);
+  private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
 
+  readonly canEditProject = computed(() => {
+    const role = this.authService.role();
+    return role === 'ADMIN' || role === 'GERENTE';
+  });
   readonly projects = signal<Project[]>([]);
   readonly editingProjectId = signal<string | null>(null);
   readonly saving = signal(false);
@@ -44,6 +50,9 @@ export class ProjectsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (!this.canEditProject() && this.editingProjectId()) {
+      this.cancelEdit();
+    }
     this.loadProjects();
   }
 
@@ -56,6 +65,10 @@ export class ProjectsComponent implements OnInit {
     if (this.saving()) return;
 
     const editingId = this.editingProjectId();
+    if (editingId && !this.canEditProject()) {
+      this.snackBar.open('Solo ADMIN y GERENTE pueden editar proyectos.', 'Cerrar', { duration: 3500 });
+      return;
+    }
     this.saving.set(true);
     if (editingId) {
       this.projectsService
@@ -102,6 +115,10 @@ export class ProjectsComponent implements OnInit {
   }
 
   edit(project: Project): void {
+    if (!this.canEditProject()) {
+      this.snackBar.open('Solo ADMIN y GERENTE pueden editar proyectos.', 'Cerrar', { duration: 3500 });
+      return;
+    }
     this.editingProjectId.set(project.id);
     this.form.patchValue({
       name: project.name,

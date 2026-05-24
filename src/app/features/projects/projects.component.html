@@ -1,8 +1,8 @@
 <h1 class="page-title">Proyectos</h1>
 <p class="page-subtitle">Crea, edita y gestiona los tableros de trabajo colaborativo.</p>
 
-<mat-card class="section-card form-card">
-  <h2>Crear proyecto</h2>
+<mat-card class="section-card form-card" *ngIf="canEditProject() || !editingProjectId()">
+  <h2>{{ editingProjectId() ? 'Editar proyecto' : 'Crear proyecto' }}</h2>
   <form [formGroup]="form" (ngSubmit)="create()" class="form-grid">
     <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="name" /></mat-form-field>
     <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput formControlName="description" /></mat-form-field>
@@ -29,7 +29,7 @@
       <div class="actions">
         <a mat-button [routerLink]="['/projects', project.id]">Detalle</a>
         <a mat-flat-button class="primary-btn" [routerLink]="['/kanban', project.id]">Kanban</a>
-        <button mat-button type="button" (click)="edit(project)">Editar</button>
+        <button mat-button type="button" (click)="edit(project)" *ngIf="canEditProject()">Editar</button>
       </div>
     </mat-card>
   }

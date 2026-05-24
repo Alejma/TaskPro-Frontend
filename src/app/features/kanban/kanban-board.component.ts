@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { TaskDetailDialogComponent } from '../../shared/components/task-detail-dialog/task-detail-dialog.component';
 import { Task, TaskStatus } from '../../core/models/task.model';
 import { User } from '../../core/models/user.model';
 import { TasksService } from '../tasks/tasks.service';
@@ -163,6 +164,7 @@ export class KanbanBoardComponent implements OnInit {
       projectId?: string | number;
       assigneeIds?: Array<string | number>;
       dueDate?: string;
+      due_date?: string;
     };
     const id = item.id ?? item._id;
     if (!id || !item.title) {
@@ -215,7 +217,7 @@ export class KanbanBoardComponent implements OnInit {
       priority: priority,
       projectId: String(item.projectId ?? this.projectId ?? ''),
       assigneeIds: assigneeIds,
-      dueDate: item.dueDate
+      dueDate: item.dueDate ?? item.due_date
     };
     console.log('    ✓ Task normalized:', {
       id: normalized.id,
@@ -331,6 +333,22 @@ export class KanbanBoardComponent implements OnInit {
     ];
     const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[hash % colors.length];
+  }
+
+  openTaskDetail(task: Task, event?: Event): void {
+    event?.stopPropagation();
+    this.dialog.open(TaskDetailDialogComponent, {
+      data: { task, users: this.users() },
+      width: '560px',
+      maxWidth: '95vw'
+    });
+  }
+
+  formatDueDate(dueDate: string | undefined): string | null {
+    if (!dueDate?.trim()) return null;
+    const parsed = new Date(dueDate);
+    if (Number.isNaN(parsed.getTime())) return dueDate;
+    return parsed.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   getPriorityClass(priority: string | undefined): string {
