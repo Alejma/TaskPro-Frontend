@@ -1,5 +1,5 @@
 <h1 class="page-title">Tablero Kanban</h1>
-<p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado.</p>
+<p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado. Haz clic en una tarjeta para ver todos los detalles.</p>
 
 <section class="kanban-board" [class.expanded]="expandedColumn() !== null">
   @for (column of columns; track column.status) {
@@ -28,30 +28,26 @@
         (cdkDropListDropped)="drop($event)"
       >
         @for (task of tasksByStatus()[column.status]; track task.id) {
-          <mat-card cdkDrag class="task-card">
+          <mat-card cdkDrag class="task-card task-card--interactive" (click)="openTaskDetail(task)">
             <div class="card-top">
               <h4 class="task-title">{{ task.title }}</h4>
-              <a mat-icon-button class="view-btn" [routerLink]="['/tasks', task.id, 'view']" matTooltip="Ver detalle" matTooltipPosition="above">
-                <mat-icon>visibility</mat-icon>
-              </a>
-              <mat-icon class="task-status-icon" [ngClass]="getTaskStatusIconClass(task)" [matTooltip]="getTaskStatusTooltip(task)" matTooltipPosition="above">
-                {{ getTaskStatusIcon(task) }}
-              </mat-icon>
+              <div class="card-top-actions">
+                <a mat-icon-button class="view-btn" [routerLink]="['/tasks', task.id, 'view']" matTooltip="Ver detalle" matTooltipPosition="above" (click)="$event.stopPropagation()">
+                  <mat-icon>visibility</mat-icon>
+                </a>
+                <mat-icon class="task-status-icon" [ngClass]="getTaskStatusIconClass(task)" [matTooltip]="getTaskStatusTooltip(task)" matTooltipPosition="above">
+                  {{ getTaskStatusIcon(task) }}
+                </mat-icon>
+              </div>
             </div>
 
-            @if (task.description && task.description.trim().length > 0) {
-              <p class="task-description">{{ task.description }}</p>
-            } @else {
-              <p class="task-description empty">Sin descripción</p>
-            }
+            <p class="task-description">{{ task.description || 'Sin descripción' }}</p>
 
             <div class="card-bottom">
               <div class="card-bottom-left">
-                @if (task.priority) {
-                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
-                    {{ getPriorityLabel(task.priority) }}
-                  </span>
-                }
+                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                  {{ getPriorityLabel(task.priority) }}
+                </span>
                 @if (task.assigneeIds && task.assigneeIds.length > 0) {
                   <div class="assignees">
                     @for (assigneeId of task.assigneeIds; track assigneeId) {
@@ -69,11 +65,13 @@
                   <span class="no-assignees">Sin asignar</span>
                 }
               </div>
-              @if (canDelete) {
-                <button mat-icon-button class="delete-btn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              }
+              <div class="card-bottom-right">
+                @if (canDelete) {
+                  <button mat-icon-button class="delete-btn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status); $event.stopPropagation()">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </div>
             </div>
           </mat-card>
         }

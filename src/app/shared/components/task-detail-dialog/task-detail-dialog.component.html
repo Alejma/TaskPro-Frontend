@@ -1,0 +1,61 @@
+<div class="task-detail-dialog">
+  <header class="dialog-header">
+    <h2 mat-dialog-title>{{ task.title }}</h2>
+    <button mat-icon-button type="button" aria-label="Cerrar" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content>
+    <dl class="detail-grid">
+      <div class="detail-row full-width">
+        <dt>Descripción</dt>
+        <dd class="description">{{ task.description.trim() ? task.description : 'Sin descripción' }}</dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>Estado</dt>
+        <dd><span class="status-pill">{{ statusLabel(task.status) }}</span></dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>Prioridad</dt>
+        <dd>
+          <span class="priority-badge" [class]="priorityClass(task.priority)">
+            {{ priorityLabel(task.priority) }}
+          </span>
+        </dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>Fecha límite</dt>
+        <dd>
+          @if (task.dueDate) {
+            {{ task.dueDate | date: 'longDate' }}
+          } @else {
+            <span class="muted">Sin fecha límite</span>
+          }
+        </dd>
+      </div>
+
+      <div class="detail-row full-width">
+        <dt>Asignados</dt>
+        <dd>
+          @if (assignees.length > 0) {
+            <div class="assignee-list">
+              @for (user of assignees; track user.id) {
+                <mat-chip>{{ user.name }} ({{ user.email }})</mat-chip>
+              }
+            </div>
+          } @else {
+            <span class="muted">Sin asignar</span>
+          }
+        </dd>
+      </div>
+    </dl>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-flat-button class="primary-btn" type="button" (click)="close()">Cerrar</button>
+  </mat-dialog-actions>
+</div>
