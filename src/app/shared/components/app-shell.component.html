@@ -9,6 +9,28 @@
       <a mat-list-item routerLink="/projects" routerLinkActive="active"><mat-icon>folder</mat-icon>Proyectos</a>
       <a mat-list-item routerLink="/tasks" routerLinkActive="active"><mat-icon>task_alt</mat-icon>Tareas</a>
       <a mat-list-item routerLink="/users" routerLinkActive="active" *ngIf="isAdmin()"><mat-icon>group</mat-icon>Usuarios</a>
+
+      @if (projects().length) {
+        <div class="project-section-label">Mis Proyectos</div>
+        @for (project of projects(); track project.id) {
+          <div class="project-entry">
+            <button class="project-toggle" (click)="toggleProject(project.id)">
+              <mat-icon class="folder-icon">folder</mat-icon>
+              <span class="project-name">{{ project.name }}</span>
+              <mat-icon class="chevron-icon">{{ expandedProjectId() === project.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            @if (expandedProjectId() === project.id) {
+              <div class="project-submenu">
+                <a mat-list-item [routerLink]="['/kanban', project.id]"><mat-icon>view_column</mat-icon>Kanban</a>
+                <a mat-list-item [routerLink]="['/projects', project.id]"><mat-icon>info</mat-icon>Detalle</a>
+                <a mat-list-item [routerLink]="['/projects', project.id, 'metrics']"><mat-icon>bar_chart</mat-icon>Métricas</a>
+                <a mat-list-item [routerLink]="['/projects']"><mat-icon>edit</mat-icon>Editar</a>
+                <a mat-list-item [routerLink]="['/tasks']" [queryParams]="{projectId: project.id}"><mat-icon>add_task</mat-icon>Crear Tarea</a>
+              </div>
+            }
+          </div>
+        }
+      }
     </mat-nav-list>
   </mat-sidenav>
 

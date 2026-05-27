@@ -1,12 +1,14 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -18,6 +20,7 @@ import { Task } from '../../core/models/task.model';
 import { UsersService } from '../../core/services/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { ProjectsService } from './projects.service';
+import { TaskFormModalComponent } from '../../shared/components/task-form-modal/task-form-modal.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -31,7 +34,8 @@ import { ProjectsService } from './projects.service';
     MatInputModule,
     MatSelectModule,
     MatAutocompleteModule,
-    MatChipsModule
+    MatChipsModule,
+    MatIconModule
   ],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
@@ -44,17 +48,15 @@ export class ProjectDetailComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
   private readonly projectsService = inject(ProjectsService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   readonly projectId = signal<string | null>(null);
   readonly project = signal<Project | null>(null);
   readonly projectTasks = signal<Task[]>([]);
   readonly users = signal<User[]>([]);
   readonly projectMemberIds = signal<string[]>([]);
-  readonly taskAssigneeIds = signal<string[]>([]);
   readonly memberEmailQuery = signal('');
-  readonly taskEmailQuery = signal('');
   readonly savingMembers = signal(false);
-  readonly savingTask = signal(false);
 
   readonly canAssignPeople = computed(() => {
     const role = this.authService.role();
@@ -63,30 +65,12 @@ export class ProjectDetailComponent implements OnInit {
   readonly selectedProjectMembers = computed(() =>
     this.users().filter((user) => this.projectMemberIds().includes(user.id))
   );
-  readonly selectedTaskAssignees = computed(() =>
-    this.users().filter((user) => this.taskAssigneeIds().includes(user.id))
-  );
   readonly filteredUsersForMembers = computed(() => {
     const query = this.memberEmailQuery().trim().toLowerCase();
     const selectedIds = new Set(this.projectMemberIds());
     return this.users().filter(
       (user) => !selectedIds.has(user.id) && (!query || user.email.toLowerCase().includes(query))
     );
-  });
-  readonly filteredUsersForTask = computed(() => {
-    const query = this.taskEmailQuery().trim().toLowerCase();
-    const selectedIds = new Set(this.taskAssigneeIds());
-    return this.users().filter(
-      (user) => !selectedIds.has(user.id) && (!query || user.email.toLowerCase().includes(query))
-    );
-  });
-
-  readonly taskForm = this.fb.nonNullable.group({
-    title: ['', Validators.required],
-    description: ['', Validators.required],
-    status: ['PENDING' as const, Validators.required],
-    priority: ['MEDIUM' as const, Validators.required],
-    dueDate: ['']
   });
 
   ngOnInit(): void {
@@ -100,10 +84,6 @@ export class ProjectDetailComponent implements OnInit {
 
   setMemberEmailQuery(value: string): void {
     this.memberEmailQuery.set(value);
-  }
-
-  setTaskEmailQuery(value: string): void {
-    this.taskEmailQuery.set(value);
   }
 
   addMemberToProject(user: User): void {
@@ -145,64 +125,20 @@ export class ProjectDetailComponent implements OnInit {
       });
   }
 
-  addTaskAssignee(user: User): void {
-    if (!this.canAssignPeople()) return;
-    this.taskAssigneeIds.update((ids) => (ids.includes(user.id) ? ids : [...ids, user.id]));
-    this.taskEmailQuery.set('');
-  }
-
-  removeTaskAssignee(userId: string): void {
-    if (!this.canAssignPeople()) return;
-    this.taskAssigneeIds.update((ids) => ids.filter((id) => id !== userId));
-  }
-
-  createTask(): void {
-    const projectId = this.projectId();
-    if (!projectId || this.taskForm.invalid || this.savingTask()) {
-      this.taskForm.markAllAsTouched();
-      return;
-    }
-
-    this.savingTask.set(true);
-    const formValue = this.taskForm.getRawValue();
-    const taskPayload = {
-      title: formValue.title,
-      description: formValue.description,
-      status: this.taskForm.controls.status.value as any,
-      priority: this.taskForm.controls.priority.value as any,
-      dueDate: formValue.dueDate,
-      assigneeIds: this.canAssignPeople() ? this.taskAssigneeIds() : [],
-      projectId: projectId
-    };
-    
-    this.tasksService
-      .createTask(projectId, taskPayload)
-      .pipe(finalize(() => this.savingTask.set(false)))
-      .subscribe({
-        next: (task) => {
-          const normalizedTask = this.normalizeTask(task);
-          if (normalizedTask) {
-            this.projectTasks.update((tasks) => [normalizedTask, ...tasks]);
-          } else {
-            this.loadProjectTasks(projectId);
-          }
-          this.taskForm.reset({
-            title: '',
-            description: '',
-            status: 'PENDING',
-            priority: 'MEDIUM',
-            dueDate: ''
-          });
-          this.taskAssigneeIds.set([]);
-          this.taskEmailQuery.set('');
-          this.snackBar.open('Tarea creada correctamente.', 'Cerrar', { duration: 2500 });
-        },
-        error: (error: HttpErrorResponse) => {
-          this.snackBar.open(error.error?.message ?? 'No se pudo crear la tarea.', 'Cerrar', {
-            duration: 4000
-          });
-        }
-      });
+  openCreateTaskModal(): void {
+    const pid = this.projectId();
+    if (!pid) return;
+    const ref = this.dialog.open(TaskFormModalComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: { projectId: pid }
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadProjectTasks(pid);
+      }
+    });
   }
 
   getUserNameById(userId: string): string {
@@ -268,26 +204,15 @@ export class ProjectDetailComponent implements OnInit {
 
   private normalizeUser(raw: unknown): User | null {
     if (!raw || typeof raw !== 'object') return null;
-    const item = raw as {
-      id?: string | number;
-      _id?: string | number;
-      name?: string;
-      email?: string;
-      role?: string;
-      roleName?: string;
-      roleId?: string | number;
-      active?: boolean;
-      isActive?: boolean;
-    };
-    const id = item.id ?? item._id;
-    if (!id || !item.name || !item.email) return null;
-    const normalizedRole = this.normalizeRole(item.role ?? item.roleName ?? item.roleId);
+    const item = raw as Record<string, unknown>;
+    const id = String(item['id'] ?? item['_id'] ?? '');
+    if (!id || !item['name'] || !item['email']) return null;
     return {
-      id: String(id),
-      name: item.name,
-      email: item.email,
-      role: normalizedRole,
-      active: item.active ?? item.isActive ?? false
+      id,
+      name: String(item['name']),
+      email: String(item['email']),
+      role: this.normalizeRole(item['role'] ?? item['roleName'] ?? item['roleId']),
+      active: (item['active'] ?? item['isActive'] ?? false) as boolean
     };
   }
 
@@ -309,34 +234,22 @@ export class ProjectDetailComponent implements OnInit {
 
   private normalizeProject(raw: unknown): Project | null {
     if (!raw || typeof raw !== 'object') return null;
-    const item = raw as {
-      id?: string | number;
-      _id?: string | number;
-      name?: string;
-      projectName?: string;
-      description?: string;
-      details?: string;
-      status?: 'ACTIVE' | 'PAUSED' | 'DONE';
-      ownerId?: string | number;
-      owner?: string | number;
-      membersCount?: number;
-      memberIds?: Array<string | number>;
-      members?: Array<{ id?: string | number; _id?: string | number }>;
-    };
-    const id = item.id ?? item._id;
-    const name = item.name ?? item.projectName;
+    const item = raw as Record<string, unknown>;
+    const id = String(item['id'] ?? item['_id'] ?? '');
+    const name = String(item['name'] ?? item['projectName'] ?? '');
     if (!id || !name) return null;
-    const memberIds = item.memberIds?.map((value) => String(value)) ??
-      item.members?.map((member) => String(member.id ?? member._id)).filter(Boolean) ??
-      [];
-
+    const memberIdsRaw = item['memberIds'] ?? item['members'];
+    let memberIds: string[] = [];
+    if (Array.isArray(memberIdsRaw)) {
+      memberIds = memberIdsRaw.map((v: unknown) => String((v as Record<string, unknown>)['id'] ?? (v as Record<string, unknown>)['_id'] ?? v));
+    }
     return {
-      id: String(id),
+      id,
       name,
-      description: item.description ?? item.details ?? '',
-      status: item.status ?? 'ACTIVE',
-      ownerId: String(item.ownerId ?? item.owner ?? ''),
-      membersCount: typeof item.membersCount === 'number' ? item.membersCount : memberIds.length,
+      description: String(item['description'] ?? item['details'] ?? ''),
+      status: (item['status'] as Project['status']) ?? 'ACTIVE',
+      ownerId: String(item['ownerId'] ?? item['owner'] ?? ''),
+      membersCount: typeof item['membersCount'] === 'number' ? (item['membersCount'] as number) : memberIds.length,
       memberIds
     };
   }
@@ -344,41 +257,29 @@ export class ProjectDetailComponent implements OnInit {
   private extractSingleProject(response: unknown): Project | null {
     const root = this.normalizeProject(response);
     if (root) return root;
-
     const wrapped = response as { data?: unknown; project?: unknown };
-    const fromData = this.normalizeProject(wrapped?.data);
-    if (fromData) return fromData;
+    return this.normalizeProject(wrapped?.data) ?? this.normalizeProject(wrapped?.project);
+  }
 
-    const fromProject = this.normalizeProject(wrapped?.project);
-    if (fromProject) return fromProject;
-
-    return null;
+  getPriorityLabel(priority: number | undefined): string {
+    const labels: Record<number, string> = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Urgente' };
+    return labels[priority ?? 2] ?? 'Media';
   }
 
   private normalizeTask(raw: unknown): Task | null {
     if (!raw || typeof raw !== 'object') return null;
-    const item = raw as {
-      id?: string | number;
-      _id?: string | number;
-      title?: string;
-      description?: string;
-      status?: 'PENDING' | 'IN_PROGRESS' | 'DONE';
-      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-      projectId?: string | number;
-      assigneeIds?: Array<string | number>;
-      dueDate?: string;
-    };
-    const id = item.id ?? item._id;
-    if (!id || !item.title) return null;
+    const item = raw as Record<string, unknown>;
+    const id = String(item['id'] ?? item['_id'] ?? '');
+    if (!id || !item['title']) return null;
     return {
-      id: String(id),
-      title: item.title,
-      description: item.description ?? '',
-      status: item.status ?? 'PENDING',
-      priority: item.priority ?? 'MEDIUM',
-      projectId: String(item.projectId ?? this.projectId() ?? ''),
-      assigneeIds: (item.assigneeIds ?? []).map((value) => String(value)),
-      dueDate: item.dueDate
+      id,
+      title: String(item['title']),
+      description: String(item['description'] ?? ''),
+      status: (item['status'] as Task['status']) ?? 'PENDING',
+      priority: typeof item['priority'] === 'number' ? item['priority'] as number : 2,
+      projectId: String(item['projectId'] ?? this.projectId() ?? ''),
+      assigneeIds: ((item['assigneeIds'] ?? []) as Array<string | number>).map((v) => String(v)),
+      dueDate: item['dueDate'] as string | undefined
     };
   }
 }

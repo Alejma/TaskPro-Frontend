@@ -1,17 +1,149 @@
 <h1 class="page-title">Vista general</h1>
 <p class="page-subtitle">Monitorea el estado de tus proyectos y tareas en tiempo real.</p>
 
-<section class="stats-grid">
-  <mat-card class="dashboard-card section-card">
-    <h3>Proyectos activos</h3>
-    <strong>12</strong>
-  </mat-card>
-  <mat-card class="dashboard-card section-card">
-    <h3>Tareas en progreso</h3>
-    <strong>34</strong>
-  </mat-card>
-  <mat-card class="dashboard-card section-card">
-    <h3>Completadas esta semana</h3>
-    <strong>19</strong>
-  </mat-card>
-</section>
+@if (loading()) {
+  <mat-card class="section-card"><p class="centered">Cargando métricas...</p></mat-card>
+} @else if (error()) {
+  <mat-card class="section-card"><p class="centered error-text">Error al cargar métricas</p></mat-card>
+} @else {
+  @if (metrics(); as m) {
+
+    <!-- === Stats row === -->
+    <section class="stats-row">
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#5f4b90">folder</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.activeProjects }}<span class="stat-sub">/{{ m.totalProjects }}</span></div>
+          <div class="stat-label">Proyectos activos</div>
+        </div>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#1565c0">assignment</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.totalTasks }}</div>
+          <div class="stat-label">Total tareas</div>
+        </div>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#2e7d32">check_circle</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.completedTasks }}</div>
+          <div class="stat-label">Completadas</div>
+        </div>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#b23b3b">warning</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.overdueTasks }}</div>
+          <div class="stat-label">Vencidas</div>
+        </div>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#e65100">pending</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.pendingTasks }}</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon" style="color:#a491d3">trending_up</mat-icon>
+        <div>
+          <div class="stat-value">{{ m.completionRate }}%</div>
+          <div class="stat-label">Finalización</div>
+        </div>
+      </mat-card>
+    </section>
+
+    <!-- === Progress + Weekly === -->
+    <div class="progress-weekly-row">
+      <mat-card class="section-card progress-card">
+        <h3>Progreso general</h3>
+        <div class="progress-row">
+          <span class="progress-lbl">{{ m.completionRate }}% completado ({{ m.completedTasks }}/{{ m.totalTasks }})</span>
+          <mat-progress-bar mode="determinate" [value]="m.completionRate" class="progress-bar"></mat-progress-bar>
+        </div>
+        <div class="progress-row" style="margin-top:14px">
+          <span class="progress-lbl">Progreso por peso: {{ m.weightProgress }}% ({{ m.completedWeight }}/{{ m.totalWeight }})</span>
+          <mat-progress-bar mode="determinate" [value]="m.weightProgress" class="progress-bar accent"></mat-progress-bar>
+        </div>
+      </mat-card>
+      <mat-card class="section-card weekly-card">
+        <h3>Esta semana</h3>
+        <div class="weekly-grid">
+          <div class="weekly-item">
+            <span class="weekly-value" style="color:#2e7d32">{{ m.completedThisWeek }}</span>
+            <span class="weekly-label">Completadas</span>
+          </div>
+          <div class="weekly-item">
+            <span class="weekly-value" style="color:#1565c0">{{ m.createdThisWeek }}</span>
+            <span class="weekly-label">Creadas</span>
+          </div>
+          <div class="weekly-item">
+            <span class="weekly-value" style="color:#5f4b90">{{ m.averagePriority }}</span>
+            <span class="weekly-label">Prioridad promedio</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- === Priority + Projects === -->
+    <div class="detail-row">
+      <mat-card class="section-card detail-card">
+        <h3>Tareas por prioridad</h3>
+        <div class="priority-list">
+          @for (entry of priorityEntries(); track entry.label) {
+            <div class="priority-row">
+              <span class="priority-label">{{ entry.label }}</span>
+              <span class="priority-count">{{ entry.count }}</span>
+            </div>
+          } @empty {
+            <p class="empty-text">Sin datos</p>
+          }
+        </div>
+      </mat-card>
+      <mat-card class="section-card detail-card">
+        <h3>Proyectos ({{ m.projects.length }})</h3>
+        @if (m.projects.length > 0) {
+          <table mat-table [dataSource]="m.projects" class="project-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Proyecto</th>
+              <td mat-cell *matCellDef="let p">
+                <a class="project-link" [routerLink]="['/projects', p.id]" [style.color]="'#5f4b90'">{{ p.name }}</a>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="totalTasks">
+              <th mat-header-cell *matHeaderCellDef>Total</th>
+              <td mat-cell *matCellDef="let p">{{ p.totalTasks }}</td>
+            </ng-container>
+            <ng-container matColumnDef="pendingTasks">
+              <th mat-header-cell *matHeaderCellDef>Pend.</th>
+              <td mat-cell *matCellDef="let p">{{ p.pendingTasks }}</td>
+            </ng-container>
+            <ng-container matColumnDef="inProgressTasks">
+              <th mat-header-cell *matHeaderCellDef>Prog.</th>
+              <td mat-cell *matCellDef="let p">{{ p.inProgressTasks }}</td>
+            </ng-container>
+            <ng-container matColumnDef="completedTasks">
+              <th mat-header-cell *matHeaderCellDef>Comp.</th>
+              <td mat-cell *matCellDef="let p">{{ p.completedTasks }}</td>
+            </ng-container>
+            <ng-container matColumnDef="progress">
+              <th mat-header-cell *matHeaderCellDef>Progreso</th>
+              <td mat-cell *matCellDef="let p">
+                <div class="cell-progress">
+                  <span>{{ p.progress }}%</span>
+                  <mat-progress-bar mode="determinate" [value]="p.progress" class="mini-bar"></mat-progress-bar>
+                </div>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="projectColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: projectColumns;"></tr>
+          </table>
+        } @else {
+          <p class="empty-text">Sin proyectos activos</p>
+        }
+      </mat-card>
+    </div>
+
+  }
+}

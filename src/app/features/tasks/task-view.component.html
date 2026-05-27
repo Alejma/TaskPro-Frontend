@@ -1,0 +1,106 @@
+<section class="view-page">
+  <div class="page-head">
+    <a mat-button routerLink=".." class="back-btn"><mat-icon>arrow_back</mat-icon> Volver</a>
+  </div>
+
+  @if (loading()) {
+    <mat-card class="section-card"><p class="centered">Cargando tarea...</p></mat-card>
+  } @else if (error()) {
+    <mat-card class="section-card"><p class="centered error-text">Error al cargar la tarea</p></mat-card>
+  } @else {
+    @if (task(); as t) {
+    <!-- Task info -->
+    <mat-card class="section-card task-info">
+      <h2>{{ t.title }}</h2>
+      @if (t.description) {
+        <p class="task-desc">{{ t.description }}</p>
+      }
+      <div class="task-meta">
+        <span class="meta-chip" [style.background]="'#f3eefc'" [style.color]="'#5f4b90'">{{ getStatusLabel(t.status) }}</span>
+        <span class="meta-chip priority-badge" [ngClass]="'priority-' + (t.priority <= 1 ? 'low' : t.priority === 2 ? 'medium' : t.priority === 3 ? 'high' : 'urgent')">{{ getPriorityLabel(t.priority) }}</span>
+        @if (t.dueDate) {
+          <span class="meta-chip" [style.background]="'#fff3cd'" [style.color]="'#856404'">Vence: {{ t.dueDate | date:'shortDate' }}</span>
+        }
+        @if (t.assigneeIds && t.assigneeIds.length > 0) {
+          <span class="meta-chip" [style.background]="'#e8f5e9'" [style.color]="'#2e7d32'">{{ t.assigneeIds.length }} asignado(s)</span>
+        }
+      </div>
+    </mat-card>
+
+    <!-- Activity timeline -->
+    <mat-card class="section-card timeline-card">
+      <h3>Actividad</h3>
+      @if (activity().length === 0) {
+        <p class="empty-text">Sin actividad registrada</p>
+      } @else {
+        <div class="timeline">
+          @for (a of activity(); track a.id) {
+            <div class="timeline-item">
+              <div class="timeline-icon" [style.background]="getActivityColor(a.action)">
+                <mat-icon>{{ getActivityIcon(a.action) }}</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <span class="timeline-text">{{ getActivityDescription(a) }}</span>
+                <span class="timeline-date">{{ a.createdAt | date:'short' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </mat-card>
+
+    <!-- Comments -->
+    <mat-card class="section-card comments-card">
+      <h3>Comentarios ({{ comments().length }})</h3>
+      @if (comments().length === 0) {
+        <p class="empty-text">Sin comentarios</p>
+      } @else {
+        <div class="comments-list">
+          @for (c of comments(); track c.id) {
+            <div class="comment-item">
+              <div class="comment-avatar" [style.background]="'#a491d3'">{{ c.user.name.charAt(0).toUpperCase() }}</div>
+              <div class="comment-body">
+                <div class="comment-head">
+                  <span class="comment-author">{{ c.user.name }}</span>
+                  <span class="comment-date">{{ c.createdAt | date:'short' }}</span>
+                </div>
+                <p class="comment-content">{{ c.content }}</p>
+                @if (c.fileUrl) {
+                  <a class="comment-file" [href]="'http://localhost:3000' + c.fileUrl" target="_blank">
+                    <mat-icon>attach_file</mat-icon> Archivo adjunto
+                  </a>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Comment form -->
+      <div class="comment-form">
+        <mat-form-field appearance="outline" class="comment-input">
+          <mat-label>Escribe un comentario</mat-label>
+          <textarea matInput [ngModel]="newCommentText()" (ngModelChange)="newCommentText.set($event)" rows="2"></textarea>
+        </mat-form-field>
+        <div class="comment-actions">
+          <label class="file-btn" for="comment-file">
+            <mat-icon>attach_file</mat-icon>
+            @if (newCommentFile()) {
+              <span class="file-name">{{ newCommentFile()?.name }}</span>
+            } @else {
+              <span>Adjuntar archivo</span>
+            }
+          </label>
+          <input id="comment-file" type="file" hidden (change)="onFileSelected($event)" />
+          <button mat-flat-button class="primary-btn" [disabled]="!newCommentText().trim() || sendingComment()" (click)="sendComment()">
+            @if (sendingComment()) {
+              <mat-progress-bar mode="indeterminate" class="btn-progress"></mat-progress-bar>
+            }
+            Enviar
+          </button>
+        </div>
+      </div>
+    </mat-card>
+    }
+  }
+</section>

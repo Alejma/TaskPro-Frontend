@@ -85,3 +85,10 @@ p {
 .mat-mdc-form-field {
   width: 100%;
 }
+
+/* ── Dialog overrides ── */
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 20px !important;
+  box-shadow: 0 24px 48px rgba(50, 56, 71, 0.15),
+              0 8px 16px rgba(50, 56, 71, 0.08) !important;
+}

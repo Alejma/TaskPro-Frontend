@@ -4,6 +4,7 @@
   border-right: 1px solid #ececf1;
   padding: 14px 10px;
   background: linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+  overflow-y: auto;
 }
 .brand { font-size: 20px; font-weight: 700; color: #272a36; padding: 6px 14px 14px; display: flex; align-items: center; gap: 10px; }
 .brand-dot { width: 12px; height: 12px; border-radius: 999px; background: #a491d3; box-shadow: 0 0 0 6px #f3eefc; }
@@ -44,4 +45,55 @@ mat-icon { font-size: 18px; width: 18px; height: 18px; margin-right: 8px; color:
   background: #f9dad0;
   border-radius: 10px;
   color: #3b3f53;
+}
+.project-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9aa1b7;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 14px 14px 6px;
+}
+.project-entry {
+  display: flex;
+  flex-direction: column;
+}
+.project-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #4f5570;
+  text-align: left;
+  transition: background 0.15s;
+}
+.project-toggle:hover { background: #f5f5fa; }
+.project-toggle .folder-icon { margin-right: 2px; }
+.project-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chevron-icon { font-size: 18px; height: 18px; width: 18px; transition: transform 0.15s; }
+.project-submenu {
+  display: flex;
+  flex-direction: column;
+}
+.project-submenu a.mat-mdc-list-item {
+  padding-left: 36px !important;
+  font-size: 13px;
+  min-height: 38px;
+}
+.project-submenu a.mat-mdc-list-item .mat-mdc-list-item-unscoped-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.project-submenu a.mat-mdc-list-item mat-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  margin-right: 4px;
 }

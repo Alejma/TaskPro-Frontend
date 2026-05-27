@@ -1,0 +1,60 @@
+:host { display: block; }
+.modal {
+  padding: 20px 24px;
+  min-width: 420px;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-header h2 { margin: 0; font-size: 18px; font-weight: 600; flex: 1; }
+.header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3eefc;
+}
+.header-icon mat-icon { color: #5f4b90; margin: 0; }
+.close-btn {
+  background: none; border: none; cursor: pointer; color: #818aa3;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px; transition: background 0.15s;
+}
+.close-btn:hover { background: #f5f5fa; }
+.edit-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff5d9;
+  color: #7f6332;
+  border: 1px solid #f0d69b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.edit-badge mat-icon { font-size: 16px; width: 16px; height: 16px; color: #7f6332; }
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+textarea { resize: vertical; min-height: 60px; }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.cancel-btn { border-color: #e0e0e0; }
+.confirm-btn {
+  background: #a491d3;
+  color: #fff;
+}

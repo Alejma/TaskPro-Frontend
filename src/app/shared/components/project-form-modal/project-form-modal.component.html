@@ -1,0 +1,43 @@
+<div class="modal">
+  <div class="modal-header">
+    <div class="header-icon">
+      <mat-icon>{{ isEditing ? 'edit' : 'add' }}</mat-icon>
+    </div>
+    <h2>{{ isEditing ? 'Editar proyecto' : 'Crear proyecto' }}</h2>
+    <button class="close-btn" (click)="cancel()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  @if (isEditing) {
+    <div class="edit-badge">
+      <mat-icon>info</mat-icon> Estás modificando <strong>{{ data.project?.name }}</strong>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre del proyecto</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: App Mobile" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="description" placeholder="Describe el proyecto..." rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="ACTIVE">Activo</mat-option>
+        <mat-option value="PAUSED">Pausado</mat-option>
+        <mat-option value="DONE">Finalizado</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="modal-actions">
+      <button mat-stroked-button type="button" class="cancel-btn" (click)="cancel()">Cancelar</button>
+      <button mat-flat-button type="submit" class="confirm-btn" [disabled]="form.invalid">
+        {{ isEditing ? 'Guardar cambios' : 'Crear proyecto' }}
+      </button>
+    </div>
+  </form>
+</div>

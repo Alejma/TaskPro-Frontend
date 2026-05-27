@@ -1,35 +1,28 @@
-<h1 class="page-title">Proyectos</h1>
-<p class="page-subtitle">Crea, edita y gestiona los tableros de trabajo colaborativo.</p>
-
-<mat-card class="section-card form-card">
-  <h2>Crear proyecto</h2>
-  <form [formGroup]="form" (ngSubmit)="create()" class="form-grid">
-    <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="name" /></mat-form-field>
-    <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput formControlName="description" /></mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
-      <mat-select formControlName="status">
-        <mat-option value="ACTIVE">Activo</mat-option>
-        <mat-option value="PAUSED">Pausado</mat-option>
-        <mat-option value="DONE">Finalizado</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <button mat-flat-button class="primary-btn" type="submit" [disabled]="saving()">
-      {{ saving() ? 'Guardando...' : (editingProjectId() ? 'Actualizar' : 'Guardar') }}
-    </button>
-    <button mat-button type="button" (click)="cancelEdit()" *ngIf="editingProjectId()">Cancelar</button>
-  </form>
-</mat-card>
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Proyectos</h1>
+    <p class="page-subtitle">Crea, edita y gestiona los tableros de trabajo colaborativo.</p>
+  </div>
+  <button mat-flat-button class="primary-btn" (click)="openCreateModal()">
+    <mat-icon>add</mat-icon> Nuevo proyecto
+  </button>
+</div>
 
 <section class="project-grid">
   @for (project of projects(); track project.id) {
     <mat-card class="project-card section-card">
       <h3>{{ project.name }}</h3>
       <p>{{ project.description }}</p>
+      <div class="meta-row">
+        <span class="status-badge" [class]="project.status">{{ project.status }}</span>
+        <span class="member-count">{{ project.membersCount }} miembros</span>
+      </div>
       <div class="actions">
         <a mat-button [routerLink]="['/projects', project.id]">Detalle</a>
         <a mat-flat-button class="primary-btn" [routerLink]="['/kanban', project.id]">Kanban</a>
-        <button mat-button type="button" (click)="edit(project)">Editar</button>
+        <button mat-button type="button" (click)="openEditModal(project)">
+          <mat-icon>edit</mat-icon> Editar
+        </button>
       </div>
     </mat-card>
   }

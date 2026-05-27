@@ -1,0 +1,268 @@
+.view-page {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-head {
+  margin-bottom: 0;
+}
+
+.back-btn {
+  font-size: 13px;
+  color: #5f4b90;
+}
+
+.centered {
+  text-align: center;
+  padding: 32px;
+  color: #6f7690;
+}
+
+.error-text {
+  color: #b23b3b;
+}
+
+/* Task info */
+.task-info {
+  padding: 20px;
+}
+
+.task-info h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.task-desc {
+  color: #4b536d;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.priority-badge.priority-low { background: #d4edda; color: #1e5631; }
+.priority-badge.priority-medium { background: #fff3cd; color: #856404; }
+.priority-badge.priority-high { background: #f8d7da; color: #721c24; }
+.priority-badge.priority-urgent { background: #f5c6cb; color: #721c24; }
+
+/* Activity timeline */
+.timeline-card, .comments-card {
+  padding: 20px;
+}
+
+h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 38px;
+  bottom: -8px;
+  width: 2px;
+  background: #e0dce8;
+}
+
+.timeline-item:last-child::before {
+  display: none;
+}
+
+.timeline-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 1;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #fff;
+  }
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.timeline-text {
+  font-size: 13px;
+  color: #272a36;
+}
+
+.timeline-date {
+  font-size: 11px;
+  color: #7b829b;
+}
+
+.empty-text {
+  color: #7b829b;
+  text-align: center;
+  padding: 16px;
+}
+
+/* Comments */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 10px;
+}
+
+.comment-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: #272a36;
+}
+
+.comment-date {
+  font-size: 11px;
+  color: #7b829b;
+}
+
+.comment-content {
+  font-size: 13px;
+  color: #4b536d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.comment-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #1565c0;
+  text-decoration: none;
+  margin-top: 4px;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+/* Comment form */
+.comment-form {
+  border-top: 1px solid #ececf1;
+  padding-top: 14px;
+}
+
+.comment-input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #5f4b90;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #f3eefc;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.file-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.primary-btn {
+  position: relative;
+  background: #a491d3 !important;
+  color: #fff !important;
+  border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+  .view-page { padding: 0 8px; }
+}

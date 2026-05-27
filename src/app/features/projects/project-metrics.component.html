@@ -1,0 +1,160 @@
+<section class="metrics-page">
+  <div class="page-head">
+    <h2>Métricas del proyecto</h2>
+    <div class="filter-bar">
+      <button mat-flat-button [class.active]="days() === null" (click)="setDaysFilter(null)">General</button>
+      <button mat-flat-button [class.active]="days() === 7" (click)="setDaysFilter(7)">Últimos 7 días</button>
+      <button mat-flat-button [class.active]="days() === 30" (click)="setDaysFilter(30)">Últimos 30 días</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <mat-card class="section-card"><p class="centered">Cargando métricas...</p></mat-card>
+  } @else if (error()) {
+    <mat-card class="section-card"><p class="centered error-text">Error al cargar métricas</p></mat-card>
+  } @else {
+    @if (metrics(); as m) {
+      <div class="stats-grid">
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon">task_alt</mat-icon>
+          <span class="stat-value">{{ m.totalTasks }}</span>
+          <span class="stat-label">Total tareas</span>
+        </mat-card>
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon" style="color:#2e7d32">check_circle</mat-icon>
+          <span class="stat-value">{{ m.completedTasks }}</span>
+          <span class="stat-label">Completadas</span>
+        </mat-card>
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon" style="color:#e65100">pending</mat-icon>
+          <span class="stat-value">{{ m.pendingTasks }}</span>
+          <span class="stat-label">Pendientes</span>
+        </mat-card>
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon" style="color:#1565c0">sync</mat-icon>
+          <span class="stat-value">{{ m.inProgressTasks }}</span>
+          <span class="stat-label">En progreso</span>
+        </mat-card>
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon" style="color:#b23b3b">warning</mat-icon>
+          <span class="stat-value">{{ m.overdueTasks }}</span>
+          <span class="stat-label">Vencidas</span>
+        </mat-card>
+        <mat-card class="section-card stat-card">
+          <mat-icon class="stat-icon" style="color:#5f4b90">trending_up</mat-icon>
+          <span class="stat-value">{{ m.averagePriority | number:'1.1-1' }}</span>
+          <span class="stat-label">Prioridad promedio</span>
+        </mat-card>
+      </div>
+
+      <div class="progress-section">
+        <mat-card class="section-card progress-card">
+          <h3>Progreso general</h3>
+          <div class="progress-row">
+            <span class="progress-label">{{ m.progressPercentage }}% completado</span>
+            <mat-progress-bar mode="determinate" [value]="m.progressPercentage" class="progress-bar"></mat-progress-bar>
+          </div>
+        </mat-card>
+        <mat-card class="section-card progress-card">
+          <h3>Progreso por peso</h3>
+          <div class="progress-row">
+            <span class="progress-label">{{ m.weightProgress }}% ({{ m.completedWeight }}/{{ m.totalWeight }})</span>
+            <mat-progress-bar mode="determinate" [value]="m.weightProgress" class="progress-bar accent"></mat-progress-bar>
+          </div>
+        </mat-card>
+      </div>
+
+      <div class="detail-grid">
+        <mat-card class="section-card">
+          <h3>Tareas por prioridad</h3>
+          <div class="priority-list">
+            @for (entry of priorityEntries(); track entry.label) {
+              <div class="priority-row">
+                <span class="priority-label">{{ entry.label }}</span>
+                <span class="priority-count">{{ entry.count }} tareas</span>
+              </div>
+            }
+          </div>
+        </mat-card>
+
+        <mat-card class="section-card">
+          <h3>Carga por usuario</h3>
+          @if (m.loadByUser && m.loadByUser.length > 0) {
+            <table mat-table [dataSource]="m.loadByUser" class="user-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Usuario</th>
+                <td mat-cell *matCellDef="let u">{{ u.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="taskCount">
+                <th mat-header-cell *matHeaderCellDef>Totales</th>
+                <td mat-cell *matCellDef="let u">{{ u.taskCount }}</td>
+              </ng-container>
+              <ng-container matColumnDef="completedTasks">
+                <th mat-header-cell *matHeaderCellDef>Completadas</th>
+                <td mat-cell *matCellDef="let u">{{ u.completedTasks }}</td>
+              </ng-container>
+              <ng-container matColumnDef="weightLoad">
+                <th mat-header-cell *matHeaderCellDef>Peso</th>
+                <td mat-cell *matCellDef="let u">{{ u.weightLoad }}</td>
+              </ng-container>
+              <ng-container matColumnDef="progress">
+                <th mat-header-cell *matHeaderCellDef>Progreso</th>
+                <td mat-cell *matCellDef="let u">{{ u.progress }}%</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="loadByUserColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: loadByUserColumns;"></tr>
+            </table>
+          } @else {
+            <p class="empty-text">Sin datos de carga por usuario</p>
+          }
+        </mat-card>
+      </div>
+    }
+  }
+
+  <div class="user-perf-section">
+    <div class="section-head">
+      <h3>Rendimiento por usuario</h3>
+    </div>
+    @if (loadingUsers()) {
+      <mat-card class="section-card"><p class="centered">Cargando rendimiento...</p></mat-card>
+    } @else if (barData().length === 0) {
+      <mat-card class="section-card"><p class="centered empty-text">Sin datos de rendimiento</p></mat-card>
+    } @else {
+      <mat-card class="section-card perf-card">
+        <div class="chart-container">
+          <div class="chart-y-axis">
+            <span>{{ maxValue() }}</span>
+            <span>{{ (maxValue() / 2) | number:'1.0-0' }}</span>
+            <span>0</span>
+          </div>
+          <div class="chart-bars">
+            @for (bar of barData(); track bar.name) {
+              <div class="chart-bar-row">
+                <div class="chart-bar-track">
+                  <div
+                    class="chart-bar"
+                    [style.width.%]="maxValue() > 0 ? (bar.value / maxValue()) * 100 : 0"
+                    [class.high]="bar.value >= avgValue()"
+                    [class.low]="bar.value < avgValue()"
+                  >
+                    <span class="chart-bar-value">{{ bar.value | number:'1.0-0' }}</span>
+                  </div>
+                  <div
+                    class="chart-avg-line"
+                    [style.left.%]="maxValue() > 0 ? (avgValue() / maxValue()) * 100 : 0"
+                    title="Promedio: {{ avgValue() | number:'1.0-0' }}"
+                  ></div>
+                </div>
+                <span class="chart-bar-label">{{ bar.name }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="chart-footer">
+          <span class="avg-indicator"></span> Promedio: {{ avgValue() | number:'1.0-0' }}
+        </div>
+      </mat-card>
+    }
+  </div>
+</section>

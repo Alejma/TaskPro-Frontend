@@ -5,8 +5,9 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: number;
   projectId: string;
+  projectName?: string;
   assigneeIds: string[];
   dueDate?: string;
 }
@@ -17,7 +18,7 @@ export interface TaskPayload {
   title: string;
   description: string;
   status: TaskStatus;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: number;
   assigneeIds: string[];
   dueDate?: string;
   projectId?: string;

@@ -1,26 +1,29 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { NgIf } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 import { Task } from '../../core/models/task.model';
 import { TasksService } from './tasks.service';
+import { TaskFormModalComponent } from '../../shared/components/task-form-modal/task-form-modal.component';
+
+interface TaskGroup {
+  projectId: string;
+  projectName: string;
+  tasks: Task[];
+}
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
   imports: [
-    ReactiveFormsModule,
-    NgIf,
+    CommonModule,
+    RouterLink,
     MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss']
@@ -28,85 +31,91 @@ import { TasksService } from './tasks.service';
 export class TasksComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly tasksService = inject(TasksService);
-  private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
 
   readonly tasks = signal<Task[]>([]);
-  readonly editingTaskId = signal<string | null>(null);
-  projectId: string | null = null;
+  readonly loading = signal(true);
 
-  readonly form = this.fb.nonNullable.group({
-    title: ['', Validators.required],
-    description: ['', Validators.required],
-    status: ['PENDING' as 'PENDING' | 'IN_PROGRESS' | 'DONE', Validators.required],
-    priority: ['MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT', Validators.required],
-    assigneeIdsText: ['']
+  readonly taskGroups = computed(() => {
+    const groups = new Map<string, TaskGroup>();
+    for (const task of this.tasks()) {
+      const key = task.projectId;
+      if (!groups.has(key)) {
+        groups.set(key, { projectId: key, projectName: task.projectName ?? key, tasks: [] });
+      }
+      groups.get(key)!.tasks.push(task);
+    }
+    return Array.from(groups.values());
   });
 
+  readonly totalTasks = computed(() => this.tasks().length);
+  readonly completedTasks = computed(() => this.tasks().filter((t) => t.status === 'DONE').length);
+  readonly pendingTasks = computed(() => this.tasks().filter((t) => t.status === 'PENDING').length);
+
   ngOnInit(): void {
-    this.projectId = this.route.snapshot.queryParamMap.get('projectId');
-    if (this.projectId) {
-      this.loadTasks();
-    }
+    this.loadTasks();
   }
 
-  create(): void {
-    if (!this.projectId || this.form.invalid) return;
-    const payload = {
-      title: this.form.controls.title.value,
-      description: this.form.controls.description.value,
-      status: this.form.controls.status.value,
-      priority: this.form.controls.priority.value,
-      assigneeIds: this.form.controls.assigneeIdsText.value
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean)
-    };
+  getPriorityLabel(priority: number | undefined): string {
+    const labels: Record<number, string> = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Urgente' };
+    return labels[priority ?? 2] ?? 'Media';
+  }
 
-    const editingId = this.editingTaskId();
-    if (editingId) {
-      this.tasksService.updateTask(editingId, payload).subscribe(() => {
-        this.cancelEdit();
+  getStatusIcon(status: string): string {
+    const icons: Record<string, string> = { PENDING: 'pending_actions', IN_PROGRESS: 'sync', DONE: 'check_circle' };
+    return icons[status] ?? 'fiber_manual_record';
+  }
+
+  getStatusColor(status: string): string {
+    const colors: Record<string, string> = { PENDING: '#e65100', IN_PROGRESS: '#1565c0', DONE: '#2e7d32' };
+    return colors[status] ?? '#7b829b';
+  }
+
+  openCreateModal(projectId?: string): void {
+    const ref = this.dialog.open(TaskFormModalComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: projectId ? { projectId } : {}
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) {
         this.loadTasks();
-      });
-      return;
-    }
-
-    this.tasksService.createTask(this.projectId, payload).subscribe(() => {
-      this.form.reset({
-        title: '',
-        description: '',
-        status: 'PENDING',
-        priority: 'MEDIUM',
-        assigneeIdsText: ''
-      });
-      this.loadTasks();
+      }
     });
   }
 
-  edit(task: Task): void {
-    this.editingTaskId.set(task.id);
-    this.form.patchValue({
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-      assigneeIdsText: task.assigneeIds.join(', ')
+  openEditModal(task: Task): void {
+    const ref = this.dialog.open(TaskFormModalComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: { projectId: task.projectId, task }
     });
-  }
-
-  cancelEdit(): void {
-    this.editingTaskId.set(null);
-    this.form.reset({
-      title: '',
-      description: '',
-      status: 'PENDING',
-      priority: 'MEDIUM',
-      assigneeIdsText: ''
+    ref.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadTasks();
+      }
     });
   }
 
   private loadTasks(): void {
-    if (!this.projectId) return;
-    this.tasksService.getTasksByProject(this.projectId).subscribe((tasks) => this.tasks.set(tasks));
+    this.loading.set(true);
+    this.tasksService.getAllTasks().subscribe({
+      next: (response) => {
+        const list = extractTaskArray(response);
+        this.tasks.set(list);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
   }
+}
+
+function extractTaskArray(response: unknown): Task[] {
+  if (Array.isArray(response)) return response as Task[];
+  const obj = response as Record<string, unknown>;
+  if (Array.isArray(obj['data'])) return obj['data'] as Task[];
+  if (Array.isArray(obj['tasks'])) return obj['tasks'] as Task[];
+  return [];
 }

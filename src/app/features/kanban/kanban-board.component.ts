@@ -1,7 +1,7 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -21,7 +21,7 @@ type Column = { title: string; status: TaskStatus };
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, MatCardModule, MatChipsModule, MatTooltipModule, MatIconModule, MatButtonModule, MatSnackBarModule, ConfirmDialogComponent],
+  imports: [CommonModule, DragDropModule, MatCardModule, MatChipsModule, MatTooltipModule, MatIconModule, MatButtonModule, MatSnackBarModule, RouterLink],
   templateUrl: './kanban-board.component.html',
   styleUrls: ['./kanban-board.component.scss']
 })
@@ -48,6 +48,47 @@ export class KanbanBoardComponent implements OnInit {
     IN_PROGRESS: [],
     DONE: []
   });
+
+  readonly expandedColumn = signal<TaskStatus | null>(null);
+
+  get columnIcon(): Record<string, string> {
+    return { PENDING: 'pending_actions', IN_PROGRESS: 'sync', DONE: 'check_circle' };
+  }
+
+  toggleExpand(status: TaskStatus): void {
+    this.expandedColumn.update((current) => current === status ? null : status);
+  }
+
+  isOverdue(task: Task): boolean {
+    if (!task.dueDate) return false;
+    return new Date(task.dueDate) < new Date() && task.status !== 'DONE';
+  }
+
+  isOnTrack(task: Task): boolean {
+    if (!task.dueDate || task.status === 'DONE') return false;
+    return new Date(task.dueDate) >= new Date();
+  }
+
+  getTaskStatusIcon(task: Task): string {
+    if (task.status === 'DONE') return 'check_circle';
+    if (this.isOverdue(task)) return 'error';
+    if (task.dueDate) return 'schedule';
+    return 'more_horiz';
+  }
+
+  getTaskStatusIconClass(task: Task): string {
+    if (task.status === 'DONE') return 'status-done';
+    if (this.isOverdue(task)) return 'status-overdue';
+    if (task.dueDate) return 'status-on-track';
+    return 'status-no-date';
+  }
+
+  getTaskStatusTooltip(task: Task): string {
+    if (task.status === 'DONE') return 'Completada';
+    if (this.isOverdue(task)) return 'Atrasada - ' + (task.dueDate ? 'Vencía: ' + task.dueDate : '');
+    if (task.dueDate) return 'A tiempo - Vence: ' + task.dueDate;
+    return 'Sin fecha de vencimiento';
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('projectId');
@@ -170,10 +211,8 @@ export class KanbanBoardComponent implements OnInit {
       return null;
     }
     
-    // Convert priority number to string
-    const priority = this.normalizePriority(item.priority);
+    const priority = this.toPriorityNumber(item.priority);
 
-    // Convert status if it's a number
     const status = this.normalizeStatus(item.status);
 
     const description = item.description ?? item.desc ?? '';
@@ -228,25 +267,18 @@ export class KanbanBoardComponent implements OnInit {
     return normalized;
   }
 
-  private normalizePriority(priority: unknown): 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' {
+  private toPriorityNumber(priority: unknown): number {
+    if (typeof priority === 'number' && priority >= 1) return Math.round(priority);
     if (typeof priority === 'string') {
-      const upper = priority.toUpperCase();
-      if (upper === 'LOW' || upper === 'MEDIUM' || upper === 'HIGH' || upper === 'URGENT') {
-        return upper as any;
-      }
-      // Try to map string numbers
-      if (upper === '1') return 'LOW';
-      if (upper === '2') return 'MEDIUM';
-      if (upper === '3') return 'HIGH';
-      if (upper === '4') return 'URGENT';
+      const map: Record<string, number> = { low: 1, medium: 2, high: 3, urgent: 4, '1': 1, '2': 2, '3': 3, '4': 4 };
+      return map[priority.toLowerCase()] ?? 2;
     }
-    if (typeof priority === 'number') {
-      if (priority === 1) return 'LOW';
-      if (priority === 2) return 'MEDIUM';
-      if (priority === 3) return 'HIGH';
-      if (priority === 4) return 'URGENT';
-    }
-    return 'MEDIUM'; // default
+    return 2;
+  }
+
+  getPriorityLabel(priority: number | undefined): string {
+    const labels: Record<number, string> = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Urgente' };
+    return labels[priority ?? 2] ?? 'Media';
   }
 
   private normalizeStatus(status: unknown): TaskStatus {
@@ -333,12 +365,11 @@ export class KanbanBoardComponent implements OnInit {
     return colors[hash % colors.length];
   }
 
-  getPriorityClass(priority: string | undefined): string {
-    if (!priority) return 'priority-medium';
-    const normalized = String(priority).toLowerCase();
-    if (normalized === 'low' || normalized === 'media' || normalized === 'high' || normalized === 'urgent') {
-      return 'priority-' + normalized;
-    }
+  getPriorityClass(priority: number | undefined): string {
+    if (priority == null) return 'priority-medium';
+    if (priority <= 1) return 'priority-low';
+    if (priority === 2) return 'priority-medium';
+    if (priority >= 3) return 'priority-high';
     return 'priority-medium';
   }
 

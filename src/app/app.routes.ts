@@ -31,9 +31,19 @@ export const routes: Routes = [
           import('./features/projects/projects.component').then((m) => m.ProjectsComponent)
       },
       {
+        path: 'projects/:id/metrics',
+        loadComponent: () =>
+          import('./features/projects/project-metrics.component').then((m) => m.ProjectMetricsComponent)
+      },
+      {
         path: 'projects/:id',
         loadComponent: () =>
           import('./features/projects/project-detail.component').then((m) => m.ProjectDetailComponent)
+      },
+      {
+        path: 'tasks/:id/view',
+        loadComponent: () =>
+          import('./features/tasks/task-view.component').then((m) => m.TaskViewComponent)
       },
       {
         path: 'tasks',

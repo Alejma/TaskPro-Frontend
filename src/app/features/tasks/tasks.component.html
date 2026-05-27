@@ -1,48 +1,74 @@
-<h1 class="page-title">Tareas</h1>
-<p class="page-subtitle">Crea, actualiza y asigna tareas por proyecto.</p>
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Tareas</h1>
+    <p class="page-subtitle">{{ totalTasks() }} tareas en {{ taskGroups().length }} proyectos</p>
+  </div>
+  <button mat-flat-button class="primary-btn" (click)="openCreateModal()">
+    <mat-icon>add</mat-icon> Nueva tarea
+  </button>
+</div>
 
-<mat-card class="section-card form-card">
-  <h2>Crear tarea</h2>
-  <form [formGroup]="form" (ngSubmit)="create()" class="form-grid">
-    <mat-form-field appearance="outline"><mat-label>Título</mat-label><input matInput formControlName="title" /></mat-form-field>
-    <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput formControlName="description" /></mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
-      <mat-select formControlName="status">
-        <mat-option value="PENDING">Pendiente</mat-option>
-        <mat-option value="IN_PROGRESS">En proceso</mat-option>
-        <mat-option value="DONE">Finalizada</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Prioridad</mat-label>
-      <mat-select formControlName="priority">
-        <mat-option value="LOW">Baja</mat-option>
-        <mat-option value="MEDIUM">Media</mat-option>
-        <mat-option value="HIGH">Alta</mat-option>
-        <mat-option value="URGENT">Urgente</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Asignados (IDs separados por coma)</mat-label>
-      <input matInput formControlName="assigneeIdsText" />
-    </mat-form-field>
-    <button mat-flat-button class="primary-btn" type="submit" [disabled]="form.invalid || !projectId">
-      {{ editingTaskId() ? 'Actualizar' : 'Guardar' }}
-    </button>
-    <button mat-button type="button" (click)="cancelEdit()" *ngIf="editingTaskId()">Cancelar</button>
-  </form>
-</mat-card>
+<div class="summary-bar">
+  <span class="summary-item">
+    <mat-icon class="sum-icon" style="color:#2e7d32">check_circle</mat-icon>
+    {{ completedTasks() }} completadas
+  </span>
+  <span class="summary-item">
+    <mat-icon class="sum-icon" style="color:#e65100">pending</mat-icon>
+    {{ pendingTasks() }} pendientes
+  </span>
+  <span class="summary-item">
+    <mat-icon class="sum-icon" style="color:#1565c0">sync</mat-icon>
+    {{ totalTasks() - completedTasks() - pendingTasks() }} en progreso
+  </span>
+</div>
 
-<section class="task-list">
-  @for (task of tasks(); track task.id) {
-    <mat-card class="task-card section-card">
-      <h3>{{ task.title }}</h3>
-      <p>{{ task.description }}</p>
-      <small>{{ task.status }} · {{ task.priority }}</small>
-      <div class="task-actions">
-        <button mat-button type="button" (click)="edit(task)">Editar</button>
+@if (loading()) {
+  <mat-card class="section-card"><p class="centered">Cargando tareas...</p></mat-card>
+} @else {
+  @for (group of taskGroups(); track group.projectId) {
+    <section class="project-group">
+      <div class="project-head">
+        <h2 class="project-name">{{ group.projectName }}</h2>
+        <span class="task-count">{{ group.tasks.length }} tareas</span>
+        <button mat-button class="add-task-btn" (click)="openCreateModal(group.projectId)">
+          <mat-icon>add</mat-icon> Añadir
+        </button>
       </div>
+      <div class="task-list">
+        @for (task of group.tasks; track task.id) {
+          <mat-card class="task-card section-card">
+            <div class="task-body">
+              <div class="task-top">
+                <h3>{{ task.title }}</h3>
+                <mat-icon class="status-icon" [style.color]="getStatusColor(task.status)">{{ getStatusIcon(task.status) }}</mat-icon>
+              </div>
+              <p>{{ task.description }}</p>
+              <div class="task-meta">
+                <span class="meta-badge" [ngClass]="'priority-' + (task.priority <= 1 ? 'low' : task.priority === 2 ? 'medium' : 'high')">
+                  {{ getPriorityLabel(task.priority) }}
+                </span>
+                @if (task.dueDate) {
+                  <span class="meta-date">Vence: {{ task.dueDate | date:'shortDate' }}</span>
+                }
+              </div>
+            </div>
+            <div class="task-actions">
+              <a mat-button [routerLink]="['/tasks', task.id, 'view']">
+                <mat-icon>visibility</mat-icon> Ver
+              </a>
+              <button mat-button type="button" (click)="openEditModal(task)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+            </div>
+          </mat-card>
+        }
+      </div>
+    </section>
+  } @empty {
+    <mat-card class="section-card empty-card">
+      <mat-icon>task_alt</mat-icon>
+      <p>No hay tareas registradas. Crea la primera.</p>
     </mat-card>
   }
-</section>
+}

@@ -1,12 +1,22 @@
 <h1 class="page-title">Tablero Kanban</h1>
 <p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado.</p>
 
-<section class="kanban-board">
+<section class="kanban-board" [class.expanded]="expandedColumn() !== null">
   @for (column of columns; track column.status) {
-    <section class="kanban-column">
+    <section
+      class="kanban-column"
+      [class.column-expanded]="expandedColumn() === column.status"
+      [class.column-collapsed]="expandedColumn() !== null && expandedColumn() !== column.status"
+    >
       <header>
-        <h3>{{ column.title }}</h3>
-        <span class="badge">{{ tasksByStatus()[column.status].length }}</span>
+        <div class="column-head-left">
+          <mat-icon class="column-icon">{{ columnIcon[column.status] }}</mat-icon>
+          <h3>{{ column.title }}</h3>
+          <span class="badge">{{ tasksByStatus()[column.status].length }}</span>
+        </div>
+        <button mat-icon-button class="expand-btn" (click)="toggleExpand(column.status)" [matTooltip]="expandedColumn() === column.status ? 'Minimizar' : 'Expandir'">
+          <mat-icon>{{ expandedColumn() === column.status ? 'close_fullscreen' : 'open_in_full' }}</mat-icon>
+        </button>
       </header>
 
       <div
@@ -19,42 +29,50 @@
       >
         @for (task of tasksByStatus()[column.status]; track task.id) {
           <mat-card cdkDrag class="task-card">
-            <div class="task-header">
+            <div class="card-top">
               <h4 class="task-title">{{ task.title }}</h4>
-              @if (task.priority) {
-                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
-                  {{ task.priority }}
-                </span>
-              }
-              @if (canDelete) {
-                <button mat-icon-button color="warn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              }
+              <a mat-icon-button class="view-btn" [routerLink]="['/tasks', task.id, 'view']" matTooltip="Ver detalle" matTooltipPosition="above">
+                <mat-icon>visibility</mat-icon>
+              </a>
+              <mat-icon class="task-status-icon" [ngClass]="getTaskStatusIconClass(task)" [matTooltip]="getTaskStatusTooltip(task)" matTooltipPosition="above">
+                {{ getTaskStatusIcon(task) }}
+              </mat-icon>
             </div>
-            
+
             @if (task.description && task.description.trim().length > 0) {
               <p class="task-description">{{ task.description }}</p>
             } @else {
               <p class="task-description empty">Sin descripción</p>
             }
-            
-            <div class="task-footer">
-              @if (task.assigneeIds && task.assigneeIds.length > 0) {
-                <div class="assignees">
-                  @for (assigneeId of task.assigneeIds; track assigneeId) {
-                    <div 
-                      class="avatar" 
-                      [style.background-color]="getAvatarColor(assigneeId)"
-                      [matTooltip]="getUserNameById(assigneeId)"
-                      matTooltipPosition="above"
-                    >
-                      {{ getUserInitials(assigneeId) }}
-                    </div>
-                  }
-                </div>
-              } @else {
-                <span class="no-assignees">Sin asignar</span>
+
+            <div class="card-bottom">
+              <div class="card-bottom-left">
+                @if (task.priority) {
+                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                    {{ getPriorityLabel(task.priority) }}
+                  </span>
+                }
+                @if (task.assigneeIds && task.assigneeIds.length > 0) {
+                  <div class="assignees">
+                    @for (assigneeId of task.assigneeIds; track assigneeId) {
+                      <div
+                        class="avatar"
+                        [style.background-color]="getAvatarColor(assigneeId)"
+                        [matTooltip]="getUserNameById(assigneeId)"
+                        matTooltipPosition="above"
+                      >
+                        {{ getUserInitials(assigneeId) }}
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <span class="no-assignees">Sin asignar</span>
+                }
+              </div>
+              @if (canDelete) {
+                <button mat-icon-button class="delete-btn" aria-label="Eliminar tarea" (click)="onDeleteTask(task.id, task.status)">
+                  <mat-icon>delete</mat-icon>
+                </button>
               }
             </div>
           </mat-card>

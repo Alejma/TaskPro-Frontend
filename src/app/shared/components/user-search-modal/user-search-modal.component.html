@@ -1,0 +1,39 @@
+<div class="modal">
+  <div class="modal-header">
+    <h2>Buscar usuario</h2>
+    <button class="close-btn" (click)="cancel()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Buscar por nombre..." autofocus />
+  </mat-form-field>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando usuarios...</div>
+  } @else if (error()) {
+    <div class="state-msg error">{{ error() }}</div>
+  } @else {
+    <div class="user-list">
+      @for (user of filtered(); track user.id) {
+        <div class="user-row" (click)="toggle(user)">
+          <div class="avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
+          <span class="user-name">{{ user.name }}</span>
+          <div class="check" [class.checked]="isSelected(user.id)">
+            @if (isSelected(user.id)) {
+              <mat-icon>check</mat-icon>
+            }
+          </div>
+        </div>
+      }
+      @if (!filtered().length) {
+        <div class="state-msg">Sin resultados</div>
+      }
+    </div>
+  }
+
+  <div class="modal-actions">
+    <button mat-stroked-button class="cancel-btn" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button class="confirm-btn" (click)="confirm()">Seleccionar ({{ selectedIds().size }})</button>
+  </div>
+</div>
