@@ -9,7 +9,10 @@
     </div>
 
     <div class="meta">
-      <span class="status-badge" [class]="p.status">{{ p.status }}</span>
+      <span class="status-badge" [class]="p.status">
+        <mat-icon>{{ getProjectStatusIcon(p.status) }}</mat-icon>
+        {{ getProjectStatusLabel(p.status) }}
+      </span>
       <span><strong>Miembros:</strong> {{ selectedProjectMembers().length }}</span>
     </div>
   </mat-card>
@@ -49,10 +52,12 @@
 
     <div class="chips">
       @for (user of selectedProjectMembers(); track user.id) {
-        <mat-chip [removable]="canAssignPeople()" (removed)="removeMemberFromProject(user.id)">
-          {{ user.name }} ({{ user.email }})
+        <mat-chip class="member-chip" [removable]="canAssignPeople()" (removed)="removeMemberFromProject(user.id)">
+          <span class="member-chip-label">{{ user.name }} ({{ user.email }})</span>
           @if (canAssignPeople()) {
-            <button matChipRemove>Quitar</button>
+            <button matChipRemove type="button" class="member-chip-remove" aria-label="Quitar miembro">
+              <mat-icon>delete</mat-icon>
+            </button>
           }
         </mat-chip>
       }
@@ -73,7 +78,15 @@
           <div>
             <strong>{{ task.title }}</strong>
             <p>{{ task.description }}</p>
-            <small>{{ task.status }} · {{ getPriorityLabel(task.priority) }}</small>
+            <div class="task-meta">
+              <span class="status-badge task-status" [class]="task.status">
+                <mat-icon>{{ getTaskStatusIcon(task.status) }}</mat-icon>
+                {{ getTaskStatusLabel(task.status) }}
+              </span>
+              <span class="priority-badge" [class]="getPriorityClass(task.priority)">
+                {{ getPriorityLabel(task.priority) }}
+              </span>
+            </div>
           </div>
           <div class="assignees">
             @for (assigneeId of task.assigneeIds; track assigneeId) {

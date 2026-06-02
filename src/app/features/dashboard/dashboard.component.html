@@ -1,5 +1,15 @@
-<h1 class="page-title">Vista general</h1>
-<p class="page-subtitle">Monitorea el estado de tus proyectos y tareas en tiempo real.</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Vista general</h1>
+    <p class="page-subtitle">Monitorea el estado de tus proyectos y tareas en tiempo real.</p>
+  </div>
+  @if (!loading() && !error() && metrics()) {
+    <button mat-flat-button class="reports-btn" type="button" (click)="openReportsModal()">
+      <mat-icon>assessment</mat-icon>
+      Exportar reportes
+    </button>
+  }
+</div>
 
 @if (loading()) {
   <mat-card class="section-card"><p class="centered">Cargando métricas...</p></mat-card>
@@ -53,6 +63,111 @@
         </div>
       </mat-card>
     </section>
+
+    <!-- === Charts row === -->
+    <section class="charts-row">
+      <mat-card class="section-card chart-card chart-card--wide">
+        <div class="chart-head">
+          <h3>Progreso Semanal</h3>
+          <div class="chart-legend">
+            <span class="legend-item">
+              <span class="legend-dot legend-dot--completed"></span>
+              Completadas
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot legend-dot--planned"></span>
+              Planificadas
+            </span>
+          </div>
+        </div>
+
+        <div class="stacked-chart">
+          @for (bar of weeklyBars(); track bar.label) {
+            <div class="stacked-bar-col" [attr.title]="bar.label + ': ' + bar.completed + ' completadas, ' + bar.planned + ' planificadas'">
+              <div class="stacked-bar-track">
+                @if (bar.planned + bar.completed > 0) {
+                  <div
+                    class="stacked-bar-fill"
+                    [style.height.%]="barHeight(bar.planned + bar.completed)"
+                  >
+                    @if (bar.planned > 0) {
+                      <div
+                        class="stacked-segment stacked-segment--planned"
+                        [style.flex]="bar.planned"
+                      ></div>
+                    }
+                    @if (bar.completed > 0) {
+                      <div
+                        class="stacked-segment stacked-segment--completed"
+                        [style.flex]="bar.completed"
+                      ></div>
+                    }
+                  </div>
+                }
+              </div>
+              <span class="stacked-bar-label">{{ bar.label }}</span>
+            </div>
+          }
+        </div>
+      </mat-card>
+
+      <mat-card class="section-card chart-card chart-card--pie">
+        <h3>Distribución por Estado</h3>
+        <div class="pie-layout">
+          <div class="pie-chart-wrap">
+            <div class="pie-chart" [style.background]="pieGradient()"></div>
+          </div>
+          <ul class="pie-legend">
+            @for (slice of statusSlices(); track slice.label) {
+              <li class="pie-legend-item">
+                <span class="pie-legend-dot" [style.background]="slice.color"></span>
+                <span class="pie-legend-label">{{ slice.label }}</span>
+                <span class="pie-legend-value">{{ slice.value }}</span>
+              </li>
+            } @empty {
+              <li class="pie-legend-empty">Sin datos de tareas</li>
+            }
+          </ul>
+        </div>
+      </mat-card>
+    </section>
+
+    @if (isAdmin()) {
+      <mat-card class="section-card activity-card">
+        <div class="activity-head">
+          <div>
+            <h3>Actividad reciente</h3>
+            <p class="activity-subtitle">Historial de auditoría del sistema</p>
+          </div>
+          <button mat-stroked-button type="button" class="activity-btn" (click)="openAuditModal()">
+            <mat-icon>history</mat-icon>
+            Ver historial
+          </button>
+        </div>
+
+        @if (recentActivity().length > 0) {
+          <div class="activity-list">
+            @for (log of recentActivity(); track log.id) {
+              <div class="activity-item">
+                <span class="activity-avatar">{{ getInitials(log.userName) }}</span>
+                <div class="activity-content">
+                  <div class="activity-top">
+                    <span class="activity-user">{{ log.userName }}</span>
+                    <span class="activity-date">{{ formatActivityDate(log.createdAt) }}</span>
+                  </div>
+                  <div class="activity-bottom">
+                    <span class="activity-badge">{{ log.actionLabel }}</span>
+                    <span class="activity-details">{{ log.details }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-text">No hay actividad registrada recientemente.</p>
+        }
+      </mat-card>
+    }
 
     <!-- === Progress + Weekly === -->
     <div class="progress-weekly-row">

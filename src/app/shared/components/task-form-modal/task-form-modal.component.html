@@ -49,7 +49,9 @@
 
     <mat-form-field>
       <mat-label>Fecha límite</mat-label>
-      <input matInput formControlName="dueDate" placeholder="YYYY-MM-DD" />
+      <input matInput [matDatepicker]="dueDatePicker" formControlName="dueDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #dueDatePicker></mat-datepicker>
     </mat-form-field>
 
     <div class="assignee-section">
@@ -65,12 +67,16 @@
               (blur)="hideDropdown()"
               placeholder="Buscar por nombre..."
             />
-            @if (showDropdown() && filteredUsuarios().length) {
+            @if (showDropdown()) {
               <div class="user-dropdown">
-                @for (user of filteredUsuarios(); track user.id) {
-                  <div class="user-option" (mousedown)="selectUser(user)">
-                    <span>{{ user.name }}</span>
-                  </div>
+                @if (filteredUsuarios().length) {
+                  @for (user of filteredUsuarios(); track user.id) {
+                    <div class="user-option" (mousedown)="selectUser(user)">
+                      <span>{{ user.name }}</span>
+                    </div>
+                  }
+                } @else {
+                  <div class="user-option user-option--empty">No hay miembros asignados a este proyecto.</div>
                 }
               </div>
             }

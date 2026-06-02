@@ -1,3 +1,154 @@
+.kanban-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  border: 1px solid #e8dff5;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff 0%, #faf8ff 100%);
+  box-shadow: 0 4px 14px rgba(124, 107, 184, 0.08);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.back-btn {
+  color: #5f4b90;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f3eefc;
+  }
+}
+
+.project-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.project-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7c6bb8;
+  letter-spacing: 0.03em;
+}
+
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bright-lavender, #a491d3);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px #f3eefc;
+}
+
+.project-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #272a36;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f3eefc;
+  color: #5f4b90;
+  white-space: nowrap;
+}
+
+.favorite-btn {
+  width: 32px;
+  height: 32px;
+  color: #a491d3;
+
+  &--active {
+    color: #e6a700;
+  }
+
+  &:hover:not(&--active) {
+    background: #f3eefc;
+  }
+}
+
+.member-stack {
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+}
+
+.member-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-left: -8px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: default;
+
+  &:first-child {
+    margin-left: 0;
+  }
+}
+
+.member-empty {
+  font-size: 12px;
+  color: #7c6bb8;
+  white-space: nowrap;
+}
+
+.new-task-btn {
+  background: var(--bright-lavender, #a491d3) !important;
+  color: #fff !important;
+  height: 40px;
+  padding: 0 18px !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(164, 145, 211, 0.35);
+
+  &:hover {
+    background: #7c6bb8 !important;
+  }
+}
+
+.page-subtitle {
+  margin: 0 0 14px;
+}
+
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(280px, 1fr));
@@ -121,8 +272,35 @@ h3 {
 .card-top-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 2px;
   flex-shrink: 0;
+  align-self: flex-start;
+  min-height: 28px;
+}
+
+.view-btn {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+
+  .mat-mdc-button-touch-target {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.view-btn mat-icon {
+  margin: 0 !important;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  color: #7b829b;
 }
 
 .task-title {
@@ -135,9 +313,14 @@ h3 {
 }
 
 .task-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
   font-size: 18px;
   width: 18px;
   height: 18px;
+  line-height: 18px;
   flex-shrink: 0;
 }
 
@@ -259,20 +442,6 @@ h3 {
   color: #c62828;
 }
 
-.view-btn {
-  width: 24px;
-  height: 24px;
-  line-height: 24px;
-  flex-shrink: 0;
-}
-
-.view-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #7b829b;
-}
-
 .cdk-drag-preview {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
   border-radius: 10px;
@@ -283,6 +452,24 @@ h3 {
 }
 
 @media (max-width: 1120px) {
+  .kanban-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-right {
+    justify-content: space-between;
+  }
+
+  .new-task-btn {
+    width: 100%;
+  }
+
   .kanban-board {
     grid-template-columns: 1fr;
   }

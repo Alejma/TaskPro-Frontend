@@ -10,6 +10,8 @@ export interface Task {
   projectName?: string;
   assigneeIds: string[];
   dueDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type KanbanResponse = Record<TaskStatus, Task[]>;

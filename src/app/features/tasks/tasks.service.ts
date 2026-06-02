@@ -106,5 +106,7 @@ function normalizeTaskItem(raw: unknown): Task | null {
     projectName: project?.['name'] as string | undefined,
     assigneeIds,
     dueDate: item['dueDate'] as string | undefined,
+    createdAt: item['createdAt'] as string | undefined,
+    updatedAt: item['updatedAt'] as string | undefined,
   };
 }

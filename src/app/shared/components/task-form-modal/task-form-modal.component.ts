@@ -7,8 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { Task } from '../../../core/models/task.model';
 import { TasksService } from '../../../features/tasks/tasks.service';
 import { UsersService } from '../../../core/services/users.service';
@@ -31,6 +32,7 @@ const PRIORITY_LABELS: Record<string, string> = { '1': 'Baja', '2': 'Media', '3'
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepickerModule,
     MatButtonModule,
     MatIconModule
   ],
@@ -66,30 +68,69 @@ export class TaskFormModalComponent implements OnInit {
     description: [this.data?.task?.description ?? '', Validators.required],
     status: [(this.data?.task?.status ?? 'PENDING') as 'PENDING' | 'IN_PROGRESS' | 'DONE', Validators.required],
     priority: [String(this.data?.task?.priority ?? '2'), Validators.required],
-    dueDate: [this.data?.task?.dueDate ?? ''],
+    dueDate: this.fb.control<Date | null>(this.parseDueDate(this.data?.task?.dueDate)),
     projectId: [this.data?.projectId ?? '', this.projectRequired ? Validators.required : []]
   });
 
   readonly priorityLabel = computed(() => PRIORITY_LABELS[this.form.controls.priority.value] ?? 'Media');
 
   ngOnInit(): void {
-    this.usersService.getUsuarios().subscribe({
-      next: (list) => this.usuarios.set(list ?? []),
-      error: () => this.snackBar.open('No se pudieron cargar los usuarios.', 'Cerrar', { duration: 3000 })
-    });
-    if (!this.projectRequired) {
+    if (this.projectRequired) {
+      this.loadAssigneesForProject(this.data.projectId);
+    } else {
       this.projectsService.getProjects().subscribe({
         next: (list) => this.projects.set((list ?? []).map((p) => ({ id: String(p.id), name: p.name }))),
         error: () => this.snackBar.open('No se pudieron cargar los proyectos.', 'Cerrar', { duration: 3000 })
       });
-    }
-    if (this.data?.task?.assigneeIds?.length) {
-      const id = this.data.task.assigneeIds[0];
-      this.usersService.getUsuarios().subscribe((list) => {
-        const found = (list ?? []).find((u) => u.id === id);
-        this.assignee.set(found ?? { id, name: id });
+
+      const initialProjectId = this.form.controls.projectId.value;
+      if (initialProjectId) {
+        this.loadAssigneesForProject(initialProjectId);
+      }
+
+      this.form.controls.projectId.valueChanges.subscribe((projectId) => {
+        this.assignee.set(null);
+        this.userQuery.set('');
+        if (projectId) {
+          this.loadAssigneesForProject(projectId);
+        } else {
+          this.usuarios.set([]);
+        }
       });
     }
+  }
+
+  private loadAssigneesForProject(projectId: string): void {
+    forkJoin({
+      project: this.projectsService.getProjectById(projectId),
+      users: this.usersService.getUsuarios()
+    }).subscribe({
+      next: ({ project, users }) => {
+        const memberIds = new Set(this.extractMemberIds(project));
+        const members = (users ?? []).filter((user) => memberIds.has(user.id));
+        this.usuarios.set(members);
+        this.resolveExistingAssignee(members);
+      },
+      error: () => this.snackBar.open('No se pudieron cargar los miembros del proyecto.', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  private resolveExistingAssignee(members: { id: string; name: string }[]): void {
+    const assigneeId = this.data?.task?.assigneeIds?.[0];
+    if (!assigneeId) return;
+    const found = members.find((user) => user.id === assigneeId);
+    this.assignee.set(found ?? { id: assigneeId, name: assigneeId });
+  }
+
+  private extractMemberIds(response: unknown): string[] {
+    if (!response || typeof response !== 'object') return [];
+    const wrapped = response as Record<string, unknown>;
+    const item = (wrapped['data'] ?? wrapped['project'] ?? wrapped) as Record<string, unknown>;
+    const memberIdsRaw = item['memberIds'] ?? item['members'];
+    if (!Array.isArray(memberIdsRaw)) return [];
+    return memberIdsRaw.map((value) =>
+      String((value as Record<string, unknown>)['id'] ?? (value as Record<string, unknown>)['_id'] ?? value)
+    );
   }
 
   setUserQuery(value: string): void {
@@ -120,7 +161,7 @@ export class TaskFormModalComponent implements OnInit {
       description: formValue.description,
       status: formValue.status,
       priority: PRIORITY_MAP[formValue.priority] ?? 2,
-      dueDate: formValue.dueDate,
+      dueDate: formValue.dueDate ? this.formatDueDate(formValue.dueDate) : undefined,
       assigneeIds: this.assignee() ? [this.assignee()!.id] : []
     };
 
@@ -144,5 +185,18 @@ export class TaskFormModalComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close(null);
+  }
+
+  private parseDueDate(value?: string): Date | null {
+    if (!value?.trim()) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private formatDueDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

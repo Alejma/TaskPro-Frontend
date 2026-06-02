@@ -1,7 +1,7 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,10 +12,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TaskDetailDialogComponent } from '../../shared/components/task-detail-dialog/task-detail-dialog.component';
+import { TaskFormModalComponent } from '../../shared/components/task-form-modal/task-form-modal.component';
 import { Task, TaskStatus } from '../../core/models/task.model';
 import { User } from '../../core/models/user.model';
+import { Project } from '../../core/models/project.model';
 import { TasksService } from '../tasks/tasks.service';
 import { UsersService } from '../../core/services/users.service';
+import { ProjectsService } from '../projects/projects.service';
 
 type Column = { title: string; status: TaskStatus };
 
@@ -28,14 +31,25 @@ type Column = { title: string; status: TaskStatus };
 })
 export class KanbanBoardComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly tasksService = inject(TasksService);
   private readonly usersService = inject(UsersService);
+  private readonly projectsService = inject(ProjectsService);
   private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private projectId = '';
 
   readonly users = signal<User[]>([]);
+  readonly project = signal<Project | null>(null);
+  readonly isFavorite = signal(false);
+
+  readonly projectMembers = computed(() => {
+    const memberIds = this.project()?.memberIds ?? [];
+    return memberIds
+      .map((id) => this.users().find((user) => user.id === id))
+      .filter((user): user is User => !!user);
+  });
 
   readonly columns: Column[] = [
     { title: 'Pendiente', status: 'PENDING' },
@@ -95,8 +109,7 @@ export class KanbanBoardComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('projectId');
     if (!id) return;
     this.projectId = id;
-    
-    // Load users
+
     this.usersService.getUsers().subscribe({
       next: (response) => {
         const users = this.extractUsers(response);
@@ -104,16 +117,26 @@ export class KanbanBoardComponent implements OnInit {
       },
       error: (err) => console.error('Error cargando usuarios:', err)
     });
-    
-    // First try to get kanban data, fall back to getTasksByProject if it fails
-    this.tasksService.getKanbanByProject(id).subscribe({
+
+    this.projectsService.getProjectById(id).subscribe({
+      next: (response) => {
+        const normalized = this.normalizeProject(response);
+        if (normalized) this.project.set(normalized);
+      },
+      error: (err) => console.error('Error cargando proyecto:', err)
+    });
+
+    this.loadKanbanBoard();
+  }
+
+  private loadKanbanBoard(): void {
+    this.tasksService.getKanbanByProject(this.projectId).subscribe({
       next: (data) => {
         const normalized = this.normalizeKanbanData(data);
         this.tasksByStatus.set(normalized);
       },
-      error: (err) => {
-        // If kanban endpoint fails, use getTasksByProject and organize by status
-        this.tasksService.getTasksByProject(id).subscribe({
+      error: () => {
+        this.tasksService.getTasksByProject(this.projectId).subscribe({
           next: (tasks) => {
             const normalized = this.groupAndNormalizeTasks(tasks);
             this.tasksByStatus.set(normalized);
@@ -122,6 +145,81 @@ export class KanbanBoardComponent implements OnInit {
         });
       }
     });
+  }
+
+  goBack(): void {
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId]);
+      return;
+    }
+    this.router.navigate(['/projects']);
+  }
+
+  toggleFavorite(): void {
+    this.isFavorite.update((value) => !value);
+  }
+
+  getProjectInitial(name: string | undefined): string {
+    return (name?.trim().charAt(0) ?? 'P').toUpperCase();
+  }
+
+  getStatusLabel(status: Project['status'] | undefined): string {
+    const labels: Record<Project['status'], string> = {
+      ACTIVE: 'Desarrollo',
+      PAUSED: 'Pausado',
+      DONE: 'Finalizado'
+    };
+    return status ? labels[status] : 'Proyecto';
+  }
+
+  getMemberInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
+    }
+    return name.trim().slice(0, 2).toUpperCase() || 'U';
+  }
+
+  openCreateTask(): void {
+    const ref = this.dialog.open(TaskFormModalComponent, {
+      data: { projectId: this.projectId },
+      width: '520px',
+      maxWidth: '95vw'
+    });
+
+    ref.afterClosed().subscribe((created) => {
+      if (created) {
+        this.loadKanbanBoard();
+        this.snackBar.open('Tarea creada correctamente.', 'Cerrar', { duration: 2500 });
+      }
+    });
+  }
+
+  private normalizeProject(raw: unknown): Project | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const wrapped = raw as Record<string, unknown>;
+    const item = (wrapped['data'] ?? wrapped['project'] ?? wrapped) as Record<string, unknown>;
+    const id = String(item['id'] ?? item['_id'] ?? '');
+    const name = String(item['name'] ?? item['projectName'] ?? '');
+    if (!id || !name) return null;
+
+    const memberIdsRaw = item['memberIds'] ?? item['members'];
+    let memberIds: string[] = [];
+    if (Array.isArray(memberIdsRaw)) {
+      memberIds = memberIdsRaw.map((value) =>
+        String((value as Record<string, unknown>)['id'] ?? (value as Record<string, unknown>)['_id'] ?? value)
+      );
+    }
+
+    return {
+      id,
+      name,
+      description: String(item['description'] ?? item['details'] ?? ''),
+      status: (item['status'] as Project['status']) ?? 'ACTIVE',
+      ownerId: String(item['ownerId'] ?? item['owner'] ?? ''),
+      membersCount: typeof item['membersCount'] === 'number' ? (item['membersCount'] as number) : memberIds.length,
+      memberIds
+    };
   }
 
   private normalizeKanbanData(data: Record<TaskStatus, unknown[]>): Record<TaskStatus, Task[]> {
@@ -372,7 +470,9 @@ export class KanbanBoardComponent implements OnInit {
     this.dialog.open(TaskDetailDialogComponent, {
       data: { task, users: this.users() },
       width: '560px',
-      maxWidth: '95vw'
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'task-detail-dialog-panel'
     });
   }
 

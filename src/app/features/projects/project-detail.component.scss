@@ -27,6 +27,41 @@ p { color: #6f7690; margin-bottom: 8px; }
 }
 .assign-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.member-chip {
+  height: auto;
+  min-height: 36px;
+  padding: 6px 8px 6px 12px;
+}
+
+.member-chip-label {
+  max-width: 100%;
+  line-height: 1.35;
+}
+
+.member-chip-remove {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  padding: 0 !important;
+  opacity: 1 !important;
+
+  mat-icon {
+    margin: 0 !important;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #b23b3b;
+  }
+
+  &:hover mat-icon {
+    color: #8f2f2f;
+  }
+}
+
 .task-list { display: grid; gap: 10px; margin-top: 12px; }
 .task-item {
   display: flex;
@@ -46,16 +81,52 @@ p { color: #6f7690; margin-bottom: 8px; }
 }
 .status-badge {
   display: inline-flex;
-  padding: 3px 10px;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  line-height: 1.2;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    margin: 0;
+  }
 }
+
 .status-badge.ACTIVE { background: #e8f5e9; color: #2e7d32; }
 .status-badge.PAUSED { background: #fff5d9; color: #7f6332; }
 .status-badge.DONE { background: #f3eefc; color: #5f4b90; }
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.status-badge.task-status.PENDING { background: #fff3e0; color: #e65100; }
+.status-badge.task-status.IN_PROGRESS { background: #e3f2fd; color: #1565c0; }
+.status-badge.task-status.DONE { background: #e8f5e9; color: #2e7d32; }
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  &.priority-low { background: #d4edda; color: #1e5631; }
+  &.priority-medium { background: #fff3cd; color: #856404; }
+  &.priority-high { background: #f8d7da; color: #721c24; }
+  &.priority-urgent { background: #f5c6cb; color: #721c24; }
+}
 @media (max-width: 920px) {
   .header-row { flex-direction: column; }
   .assign-row { grid-template-columns: 1fr; }

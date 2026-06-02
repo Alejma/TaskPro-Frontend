@@ -1,3 +1,27 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.reports-btn {
+  flex-shrink: 0;
+  background: #272a36 !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  height: 42px;
+  padding: 0 18px !important;
+
+  mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .page-title { margin-bottom: 2px; }
 
 .centered {
@@ -49,6 +73,294 @@
   font-size: 11px;
   color: #7b829b;
   margin-top: 1px;
+}
+
+/* ---- Charts row ---- */
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chart-card {
+  padding: 18px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6f7690;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+
+  &--completed {
+    background: var(--bright-lavender, #a491d3);
+  }
+
+  &--planned {
+    background: var(--tea-green, #c5dca0);
+  }
+}
+
+.stacked-chart {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+  min-height: 220px;
+  padding: 16px 12px 8px;
+  background: #f7f8fc;
+  border-radius: 12px;
+}
+
+.stacked-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stacked-bar-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  max-width: 28px;
+  height: 160px;
+}
+
+.stacked-bar-fill {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  min-height: 8px;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.stacked-segment {
+  width: 100%;
+  min-height: 4px;
+
+  &--planned {
+    background: var(--tea-green, #c5dca0);
+  }
+
+  &--completed {
+    background: var(--bright-lavender, #a491d3);
+  }
+}
+
+.stacked-bar-label {
+  font-size: 10px;
+  color: #8b90a5;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.pie-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.pie-chart-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pie-chart {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 28%;
+    background: #fff;
+    border-radius: 50%;
+  }
+}
+
+.pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pie-legend-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #4b536d;
+}
+
+.pie-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pie-legend-value {
+  font-weight: 700;
+  color: #272a36;
+}
+
+.pie-legend-empty {
+  text-align: center;
+  color: #8b90a5;
+  font-size: 13px;
+}
+
+/* ---- Recent activity (admin) ---- */
+.activity-card {
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.activity-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.activity-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6f7690;
+}
+
+.activity-btn {
+  flex-shrink: 0;
+  border-color: #e0e0e0 !important;
+  color: #272a36 !important;
+
+  mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #ececf1;
+  border-radius: 12px;
+  background: #fafbff;
+}
+
+.activity-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #272a36;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-top,
+.activity-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-bottom {
+  margin-top: 6px;
+  align-items: flex-start;
+}
+
+.activity-user {
+  font-size: 14px;
+  font-weight: 600;
+  color: #272a36;
+}
+
+.activity-date {
+  font-size: 12px;
+  color: #8b90a5;
+  white-space: nowrap;
+}
+
+.activity-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f3eefc;
+  color: #5d4d85;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.activity-details {
+  font-size: 13px;
+  color: #4b536d;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---- Progress + Weekly row ---- */
@@ -180,13 +492,47 @@ h3 {
 /* ---- Responsive ---- */
 @media (max-width: 1100px) {
   .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
   .detail-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reports-btn {
+    width: 100%;
+  }
+
+  .activity-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .activity-btn {
+    width: 100%;
+  }
+
+  .activity-top,
+  .activity-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activity-details {
+    text-align: left;
+    white-space: normal;
+  }
+
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .progress-weekly-row { grid-template-columns: 1fr; }
   .weekly-grid { justify-content: space-around; }
+  .stacked-chart {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    overflow-x: auto;
+  }
 }
 
 @media (max-width: 450px) {

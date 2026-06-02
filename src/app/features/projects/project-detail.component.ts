@@ -16,7 +16,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user.model';
 import { Project } from '../../core/models/project.model';
-import { Task } from '../../core/models/task.model';
+import { Task, TaskStatus } from '../../core/models/task.model';
 import { UsersService } from '../../core/services/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { ProjectsService } from './projects.service';
@@ -261,9 +261,53 @@ export class ProjectDetailComponent implements OnInit {
     return this.normalizeProject(wrapped?.data) ?? this.normalizeProject(wrapped?.project);
   }
 
+  getProjectStatusLabel(status: Project['status'] | undefined): string {
+    const labels: Record<Project['status'], string> = {
+      ACTIVE: 'En desarrollo',
+      PAUSED: 'Pausado',
+      DONE: 'Finalizado'
+    };
+    return status ? labels[status] : 'Sin estado';
+  }
+
+  getProjectStatusIcon(status: Project['status'] | undefined): string {
+    const icons: Record<Project['status'], string> = {
+      ACTIVE: 'play_circle',
+      PAUSED: 'pause_circle',
+      DONE: 'check_circle'
+    };
+    return status ? icons[status] : 'help_outline';
+  }
+
+  getTaskStatusLabel(status: TaskStatus | undefined): string {
+    const labels: Record<TaskStatus, string> = {
+      PENDING: 'Pendiente',
+      IN_PROGRESS: 'En proceso',
+      DONE: 'Finalizada'
+    };
+    return status ? labels[status] : 'Sin estado';
+  }
+
+  getTaskStatusIcon(status: TaskStatus | undefined): string {
+    const icons: Record<TaskStatus, string> = {
+      PENDING: 'pending_actions',
+      IN_PROGRESS: 'sync',
+      DONE: 'check_circle'
+    };
+    return status ? icons[status] : 'help_outline';
+  }
+
   getPriorityLabel(priority: number | undefined): string {
     const labels: Record<number, string> = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Urgente' };
     return labels[priority ?? 2] ?? 'Media';
+  }
+
+  getPriorityClass(priority: number | undefined): string {
+    if (priority == null) return 'priority-medium';
+    if (priority <= 1) return 'priority-low';
+    if (priority === 2) return 'priority-medium';
+    if (priority === 3) return 'priority-high';
+    return 'priority-urgent';
   }
 
   private normalizeTask(raw: unknown): Task | null {

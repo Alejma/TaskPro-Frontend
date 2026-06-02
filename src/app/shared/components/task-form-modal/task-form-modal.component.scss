@@ -76,6 +76,12 @@
   transition: background 0.1s;
 }
 .user-option:hover { background: #f3eefc; }
+.user-option--empty {
+  color: #8b90a5;
+  cursor: default;
+  font-size: 12px;
+}
+.user-option--empty:hover { background: transparent; }
 .selected-user {
   display: flex;
   align-items: center;

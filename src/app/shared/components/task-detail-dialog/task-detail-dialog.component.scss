@@ -1,58 +1,79 @@
-.task-detail-dialog {
+:host {
+  display: block;
+  box-sizing: border-box;
   min-width: min(520px, 92vw);
   max-width: 640px;
 }
 
-.dialog-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding-right: 8px;
-
-  h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: #272a36;
-    line-height: 1.35;
-    word-break: break-word;
-  }
+.task-detail-modal {
+  display: block;
+  box-sizing: border-box;
+  padding: 24px;
 }
 
-.detail-grid {
+.modal-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+  align-items: start;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ececf1;
+}
+
+.modal-title {
   margin: 0;
-  display: grid;
-  gap: 16px;
+  padding: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #272a36;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.detail-row {
-  display: grid;
-  gap: 6px;
+.modal-close {
+  flex-shrink: 0;
+  margin: -6px -6px 0 0;
+  color: #6f7690;
+}
 
-  &.full-width {
-    grid-column: 1 / -1;
-  }
+.modal-body {
+  display: block;
+  max-height: min(52vh, 480px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+}
 
-  dt {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #8b90a5;
-  }
+.detail-section {
+  margin-bottom: 20px;
 
-  dd {
-    margin: 0;
-    font-size: 14px;
-    color: #3a3f52;
-    line-height: 1.5;
+  &--last {
+    margin-bottom: 0;
   }
+}
+
+.detail-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b90a5;
+  line-height: 1.2;
+}
+
+.detail-value {
+  margin: 0;
+  font-size: 14px;
+  color: #3a3f52;
+  line-height: 1.55;
 }
 
 .description {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -103,6 +124,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ececf1;
 }
 
 .primary-btn {

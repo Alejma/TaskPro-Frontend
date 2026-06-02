@@ -1,4 +1,50 @@
-<h1 class="page-title">Tablero Kanban</h1>
+<section class="kanban-toolbar">
+  <div class="toolbar-left">
+    <button mat-icon-button type="button" class="back-btn" aria-label="Volver al proyecto" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="project-meta">
+      <span class="project-label">Proyecto</span>
+      <div class="project-info">
+        <span class="project-icon">{{ getProjectInitial(project()?.name) }}</span>
+        <span class="project-name">{{ project()?.name ?? 'Cargando...' }}</span>
+        <span class="project-status">{{ getStatusLabel(project()?.status) }}</span>
+        <button
+          mat-icon-button
+          type="button"
+          class="favorite-btn"
+          [class.favorite-btn--active]="isFavorite()"
+          aria-label="Marcar como favorito"
+          (click)="toggleFavorite()"
+        >
+          <mat-icon>{{ isFavorite() ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar-right">
+    <div class="member-stack" aria-label="Miembros del proyecto">
+      @for (member of projectMembers().slice(0, 4); track member.id) {
+        <span
+          class="member-avatar"
+          [style.background-color]="getAvatarColor(member.id)"
+          [matTooltip]="member.name"
+          matTooltipPosition="below"
+        >
+          {{ getMemberInitials(member.name) }}
+        </span>
+      } @empty {
+        <span class="member-empty">Sin miembros</span>
+      }
+    </div>
+
+    <button mat-flat-button type="button" class="new-task-btn" (click)="openCreateTask()">
+      Nueva Tarea
+    </button>
+  </div>
+</section>
+
 <p class="page-subtitle">Arrastra tareas entre columnas para actualizar su estado. Haz clic en una tarjeta para ver todos los detalles.</p>
 
 <section class="kanban-board" [class.expanded]="expandedColumn() !== null">

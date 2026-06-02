@@ -20,13 +20,19 @@ export class AuthService {
     const raw = this._userRaw();
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as LoginResponse['user'];
+      const parsed = JSON.parse(raw) as LoginResponse['user'];
+      return {
+        ...parsed,
+        role: this.normalizeRole(parsed.role) ?? parsed.role
+      };
     } catch {
       return null;
     }
   });
   readonly isAuthenticated = computed(() => !!this._token());
-  readonly role = computed<Role | null>(() => this.user()?.role ?? this.getRoleFromToken());
+  readonly role = computed<Role | null>(() =>
+    this.normalizeRole(this.user()?.role ?? this.getRoleFromToken())
+  );
 
   login(payload: LoginRequest) {
     return this.http.post<unknown>(`${API_URL}/auth/login`, payload);
@@ -39,14 +45,28 @@ export class AuthService {
     const token = (data['token'] ?? data['accessToken'] ?? raw['token'] ?? raw['accessToken']) as
       | string
       | undefined;
-    const user = (data['user'] ?? raw['user']) as LoginResponse['user'] | undefined;
+    const userRaw = (data['user'] ?? raw['user']) as Record<string, unknown> | undefined;
 
-    if (!token || !user) return null;
+    if (!token || !userRaw) return null;
+
+    const user: LoginResponse['user'] = {
+      id: String(userRaw['id'] ?? userRaw['_id'] ?? ''),
+      name: String(userRaw['name'] ?? ''),
+      email: String(userRaw['email'] ?? ''),
+      role: this.normalizeRole(userRaw['role'] ?? userRaw['roleName'] ?? userRaw['roleId']) ?? 'COLABORADOR',
+      active: Boolean(userRaw['active'] ?? userRaw['isActive'] ?? true)
+    };
+
+    if (!user.id || !user.email) return null;
     return { token, user };
   }
 
   saveSession(response: LoginResponse): void {
-    const userRaw = JSON.stringify(response.user);
+    const normalizedUser: LoginResponse['user'] = {
+      ...response.user,
+      role: this.normalizeRole(response.user.role) ?? response.user.role
+    };
+    const userRaw = JSON.stringify(normalizedUser);
     localStorage.setItem(TOKEN_KEY, response.token);
     localStorage.setItem(USER_KEY, userRaw);
     this._token.set(response.token);
@@ -62,15 +82,41 @@ export class AuthService {
   }
 
   navigateByRole(role: Role | null): void {
-    if (role === 'ADMIN') {
+    const normalizedRole = this.normalizeRole(role);
+    if (normalizedRole === 'ADMIN') {
       this.router.navigate(['/users']);
       return;
     }
-    if (role === 'GERENTE') {
+    if (normalizedRole === 'GERENTE') {
       this.router.navigate(['/projects']);
       return;
     }
     this.router.navigate(['/dashboard']);
+  }
+
+  normalizeRole(rawRole: unknown): Role | null {
+    if (typeof rawRole === 'string') {
+      const upper = rawRole.trim().toUpperCase();
+      if (upper === 'ADMIN' || upper === 'GERENTE' || upper === 'COLABORADOR') return upper;
+      if (upper === '1' || upper === 'MANAGER') return upper === 'MANAGER' ? 'GERENTE' : 'ADMIN';
+      if (upper === '2') return 'GERENTE';
+      if (upper === '3') return 'COLABORADOR';
+    }
+    if (typeof rawRole === 'number') {
+      if (rawRole === 1) return 'ADMIN';
+      if (rawRole === 2) return 'GERENTE';
+      if (rawRole === 3) return 'COLABORADOR';
+    }
+    if (rawRole && typeof rawRole === 'object') {
+      const roleObject = rawRole as {
+        id?: number | string;
+        roleId?: number | string;
+        name?: string;
+        roleName?: string;
+      };
+      return this.normalizeRole(roleObject.roleName ?? roleObject.name ?? roleObject.roleId ?? roleObject.id);
+    }
+    return null;
   }
 
   private getRoleFromToken(): Role | null {
@@ -80,8 +126,8 @@ export class AuthService {
     if (parts.length < 2) return null;
     try {
       const base64Url = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(atob(base64Url)) as { role?: Role };
-      return payload.role ?? null;
+      const payload = JSON.parse(atob(base64Url)) as { role?: unknown; roleName?: unknown };
+      return this.normalizeRole(payload.role ?? payload.roleName);
     } catch {
       return null;
     }

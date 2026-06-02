@@ -1,5 +1,5 @@
 <mat-sidenav-container class="shell-container">
-  <mat-sidenav mode="side" opened class="shell-sidenav">
+  <mat-sidenav mode="side" [opened]="sidenavOpened()" class="shell-sidenav">
     <div class="brand">
       <div class="brand-dot"></div>
       <span>TaskPro</span>
@@ -7,7 +7,7 @@
     <mat-nav-list>
       <a mat-list-item routerLink="/dashboard" routerLinkActive="active"><mat-icon>home</mat-icon>Dashboard</a>
       <a mat-list-item routerLink="/projects" routerLinkActive="active"><mat-icon>folder</mat-icon>Proyectos</a>
-      <a mat-list-item routerLink="/tasks" routerLinkActive="active"><mat-icon>task_alt</mat-icon>Tareas</a>
+      <a mat-list-item routerLink="/tasks" routerLinkActive="active" *ngIf="canAccessTasksModule()"><mat-icon>task_alt</mat-icon>Tareas</a>
       <a mat-list-item routerLink="/users" routerLinkActive="active" *ngIf="isAdmin()"><mat-icon>group</mat-icon>Usuarios</a>
 
       @if (projects().length) {
@@ -25,7 +25,7 @@
                 <a mat-list-item [routerLink]="['/projects', project.id]"><mat-icon>info</mat-icon>Detalle</a>
                 <a mat-list-item [routerLink]="['/projects', project.id, 'metrics']"><mat-icon>bar_chart</mat-icon>Métricas</a>
                 <a mat-list-item [routerLink]="['/projects']"><mat-icon>edit</mat-icon>Editar</a>
-                <a mat-list-item [routerLink]="['/tasks']" [queryParams]="{projectId: project.id}"><mat-icon>add_task</mat-icon>Crear Tarea</a>
+                <a mat-list-item *ngIf="canAccessTasksModule()" [routerLink]="['/tasks']" [queryParams]="{projectId: project.id}"><mat-icon>add_task</mat-icon>Crear Tarea</a>
               </div>
             }
           </div>
@@ -36,10 +36,76 @@
 
   <mat-sidenav-content>
     <mat-toolbar class="shell-toolbar">
-      <span class="search-fake">Buscar...</span>
+      <div class="toolbar-left">
+        <button
+          mat-icon-button
+          type="button"
+          class="toolbar-icon-btn"
+          aria-label="Alternar menú lateral"
+          (click)="toggleSidenav()"
+        >
+          <mat-icon>view_sidebar</mat-icon>
+        </button>
+        <span class="toolbar-brand">TaskPRO</span>
+      </div>
+
       <span class="toolbar-spacer"></span>
-      <span class="user-pill">{{ userName() }}</span>
-      <button mat-flat-button class="soft-btn" (click)="logout()">Salir</button>
+
+      <div class="toolbar-right">
+        <label class="toolbar-search" aria-label="Buscar tableros">
+          <input type="search" placeholder="Buscar tableros..." />
+          <mat-icon class="search-icon">search</mat-icon>
+        </label>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="toolbar-icon-btn notifications-btn"
+          aria-label="Notificaciones"
+          [matMenuTriggerFor]="notificationsMenu"
+        >
+          <mat-icon
+            [matBadge]="unreadNotifications()"
+            matBadgeSize="small"
+            matBadgeColor="accent"
+            [matBadgeHidden]="unreadNotifications() === 0"
+          >
+            notifications_none
+          </mat-icon>
+        </button>
+
+        <mat-menu #notificationsMenu="matMenu" class="notifications-menu-panel" xPosition="before">
+          <app-notifications-panel (click)="$event.stopPropagation()" />
+        </mat-menu>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="toolbar-icon-btn"
+          aria-label="Ayuda"
+        >
+          <mat-icon>help_outline</mat-icon>
+        </button>
+
+        <button
+          mat-button
+          type="button"
+          class="user-menu-trigger"
+          [matMenuTriggerFor]="userMenu"
+          aria-label="Menú de usuario"
+        >
+          <span class="user-avatar" aria-hidden="true">{{ userInitials() }}</span>
+          <span class="user-name">{{ userName() }}</span>
+          <mat-icon class="user-chevron">expand_more</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu" class="user-dropdown-menu" xPosition="before">
+          <button mat-menu-item type="button" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Cerrar sesión</span>
+          </button>
+        </mat-menu>
+      </div>
     </mat-toolbar>
     <main class="shell-content">
       <router-outlet />

@@ -6,8 +6,12 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { ProjectsService } from '../../features/projects/projects.service';
+import { NotificationsPanelComponent } from './notifications-panel/notifications-panel.component';
 import { Project } from '../../core/models/project.model';
 
 @Component({
@@ -22,7 +26,10 @@ import { Project } from '../../core/models/project.model';
     MatSidenavModule,
     MatIconModule,
     MatButtonModule,
-    MatListModule
+    MatListModule,
+    MatMenuModule,
+    MatBadgeModule,
+    NotificationsPanelComponent
   ],
   templateUrl: './app-shell.component.html',
   styleUrls: ['./app-shell.component.scss']
@@ -31,67 +38,46 @@ export class AppShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly projectsService = inject(ProjectsService);
+  private readonly notificationsService = inject(NotificationsService);
 
   readonly isAdmin = computed(() => this.authService.role() === 'ADMIN');
+  readonly canAccessTasksModule = computed(() => {
+    const role = this.authService.role();
+    return role === 'ADMIN' || role === 'GERENTE';
+  });
   readonly userName = computed(() => this.authService.user()?.name ?? 'Usuario');
+  readonly userInitials = computed(() => this.getInitials(this.userName()));
+  readonly unreadNotifications = this.notificationsService.unreadCount;
   readonly projects = signal<Project[]>([]);
   readonly expandedProjectId = signal<string | null>(null);
+  readonly sidenavOpened = signal(true);
 
   ngOnInit(): void {
     this.loadProjects();
+    this.notificationsService.load();
   }
 
   toggleProject(id: string): void {
     this.expandedProjectId.update((current) => current === id ? null : id);
   }
 
+  toggleSidenav(): void {
+    this.sidenavOpened.update((opened) => !opened);
+  }
+
+  private getInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
+    }
+    return name.trim().slice(0, 2).toUpperCase() || 'U';
+  }
+
   private loadProjects(): void {
-    this.projectsService.getProjects().subscribe((response) => {
-      const list = this.extractProjects(response);
-      this.projects.set(list);
+    this.projectsService.getProjectsForCurrentUser().subscribe({
+      next: (list) => this.projects.set(list),
+      error: () => this.projects.set([])
     });
-  }
-
-  private extractProjects(response: unknown): Project[] {
-    if (Array.isArray(response)) {
-      return (response as unknown[])
-        .map((item) => this.normalizeProject(item))
-        .filter((p): p is Project => !!p);
-    }
-    const wrapped = response as { data?: unknown; projects?: unknown };
-    if (Array.isArray(wrapped?.data)) {
-      return (wrapped.data as unknown[])
-        .map((item) => this.normalizeProject(item))
-        .filter((p): p is Project => !!p);
-    }
-    if (Array.isArray(wrapped?.projects)) {
-      return (wrapped.projects as unknown[])
-        .map((item) => this.normalizeProject(item))
-        .filter((p): p is Project => !!p);
-    }
-    return [];
-  }
-
-  private normalizeProject(raw: unknown): Project | null {
-    if (!raw || typeof raw !== 'object') return null;
-    const item = raw as Record<string, unknown>;
-    const id = String(item['id'] ?? item['_id'] ?? '');
-    const name = String(item['name'] ?? item['projectName'] ?? '');
-    if (!id || !name) return null;
-    const memberIdsRaw = item['memberIds'] ?? item['members'];
-    let memberIds: string[] = [];
-    if (Array.isArray(memberIdsRaw)) {
-      memberIds = memberIdsRaw.map((v: unknown) => String((v as Record<string, unknown>)['id'] ?? (v as Record<string, unknown>)['_id'] ?? v));
-    }
-    return {
-      id,
-      name,
-      description: String(item['description'] ?? item['details'] ?? ''),
-      status: (item['status'] as Project['status']) ?? 'ACTIVE',
-      ownerId: String(item['ownerId'] ?? item['owner'] ?? ''),
-      membersCount: typeof item['membersCount'] === 'number' ? (item['membersCount'] as number) : memberIds.length,
-      memberIds
-    };
   }
 
   logout(): void {

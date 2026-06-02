@@ -1,0 +1,90 @@
+<div class="audit-modal">
+  <header class="modal-header">
+    <div class="modal-title-wrap">
+      <h2>Historial / Auditoría</h2>
+      <span class="rf-badge">RF16</span>
+    </div>
+    <button mat-icon-button type="button" class="close-btn" aria-label="Cerrar" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <form [formGroup]="form" class="modal-filters">
+    <div class="field-block">
+      <label class="field-label">Filtrar por Usuario</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="userId">
+          <mat-option value="all">Todos los usuarios</mat-option>
+          @for (user of users; track user.id) {
+            <mat-option [value]="user.id">{{ user.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Rango de Fechas</label>
+      <div class="date-row">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Fecha Inicio</mat-label>
+          <input matInput type="date" formControlName="startDate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Fecha Fin</mat-label>
+          <input matInput type="date" formControlName="endDate" />
+        </mat-form-field>
+      </div>
+      @if (form.hasError('invalidRange')) {
+        <p class="field-error">La fecha fin debe ser posterior o igual a la fecha inicio.</p>
+      }
+    </div>
+  </form>
+
+  <div class="audit-table-wrap">
+    <table mat-table [dataSource]="filteredLogs()" class="audit-table">
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Fecha y Hora</th>
+        <td mat-cell *matCellDef="let log">{{ formatDateTime(log.createdAt) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="user">
+        <th mat-header-cell *matHeaderCellDef>Usuario</th>
+        <td mat-cell *matCellDef="let log">
+          <div class="user-cell">
+            <span class="user-avatar">{{ getInitials(log.userName) }}</span>
+            <span>{{ log.userName }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Acción</th>
+        <td mat-cell *matCellDef="let log">
+          <span class="action-badge">{{ log.actionLabel }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="details">
+        <th mat-header-cell *matHeaderCellDef>Detalles</th>
+        <td mat-cell *matCellDef="let log">{{ log.details }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    @if (filteredLogs().length === 0) {
+      <p class="empty-text">No hay registros para los filtros seleccionados.</p>
+    }
+  </div>
+
+  <footer class="modal-footer">
+    <button mat-stroked-button type="button" class="clear-btn" (click)="clearFilters()">
+      Limpiar Filtros
+    </button>
+    <button mat-flat-button type="button" class="export-btn" (click)="exportLogs()" [disabled]="filteredLogs().length === 0">
+      <mat-icon>download</mat-icon>
+      Exportar Logs
+    </button>
+  </footer>
+</div>

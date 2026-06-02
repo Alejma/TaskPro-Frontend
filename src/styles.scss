@@ -92,3 +92,38 @@ p {
   box-shadow: 0 24px 48px rgba(50, 56, 71, 0.15),
               0 8px 16px rgba(50, 56, 71, 0.08) !important;
 }
+
+.task-detail-dialog-panel {
+  .mat-mdc-dialog-container {
+    --mat-dialog-container-max-height: 90vh;
+  }
+
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    max-height: 90vh;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .mat-mdc-dialog-component-host {
+    display: block;
+    overflow: visible;
+  }
+}
+
+.reports-modal-panel {
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    padding: 0 !important;
+    border-radius: 16px !important;
+  }
+}
+
+.audit-history-modal-panel {
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    padding: 0 !important;
+    border-radius: 16px !important;
+    max-height: 92vh;
+  }
+}

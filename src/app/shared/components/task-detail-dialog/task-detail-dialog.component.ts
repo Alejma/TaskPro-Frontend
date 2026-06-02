@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { Task, TaskStatus } from '../../../core/models/task.model';
@@ -15,7 +15,7 @@ export interface TaskDetailDialogData {
 @Component({
   selector: 'app-task-detail-dialog',
   standalone: true,
-  imports: [DatePipe, MatDialogModule, MatButtonModule, MatIconModule, MatChipsModule],
+  imports: [DatePipe, MatButtonModule, MatIconModule, MatChipsModule],
   templateUrl: './task-detail-dialog.component.html',
   styleUrls: ['./task-detail-dialog.component.scss']
 })

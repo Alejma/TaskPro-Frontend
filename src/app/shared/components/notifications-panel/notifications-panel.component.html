@@ -1,0 +1,40 @@
+<div class="notifications-panel">
+  <div class="panel-header">
+    <h3>Notificaciones</h3>
+    <button type="button" class="mark-read-btn" (click)="markAllAsRead()">Marcar todas como leídas</button>
+  </div>
+
+  <div class="panel-list">
+    @for (notification of notifications(); track notification.id) {
+      <button
+        type="button"
+        class="notification-item"
+        [class.notification-item--unread]="!notification.read"
+        (click)="openNotification(notification)"
+      >
+        @if (showAvatar(notification)) {
+          <span class="notification-avatar">{{ notification.actorInitials }}</span>
+        } @else {
+          <span class="notification-icon" [class]="'notification-icon--' + notification.type">
+            <mat-icon>{{ getIcon(notification.type) }}</mat-icon>
+          </span>
+        }
+
+        <span class="notification-content">
+          <span class="notification-message">{{ notification.message }}</span>
+          <span class="notification-time">{{ getRelativeTime(notification.createdAt) }}</span>
+        </span>
+
+        @if (!notification.read) {
+          <span class="unread-dot" aria-hidden="true"></span>
+        }
+      </button>
+    } @empty {
+      <div class="empty-state">No tienes notificaciones por ahora.</div>
+    }
+  </div>
+
+  <div class="panel-footer">
+    <button type="button" class="view-all-btn" (click)="viewAll()">Ver todas las notificaciones</button>
+  </div>
+</div>

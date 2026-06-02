@@ -1,0 +1,73 @@
+<div class="reports-modal">
+  <header class="modal-header">
+    <div class="modal-title-wrap">
+      <h2>Vista de Reportes</h2>
+      <span class="rf-badge">RF15</span>
+    </div>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="export()" class="modal-body">
+    <div class="field-block">
+      <label class="field-label">Seleccionar Proyecto</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="projectId">
+          <mat-option value="all">Reporte general (todos los proyectos)</mat-option>
+          @for (project of data.metrics.projects; track project.id) {
+            <mat-option [value]="project.id">{{ project.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Rango de Fechas</label>
+      <div class="date-row">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Fecha Inicio</mat-label>
+          <input matInput type="date" formControlName="startDate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Fecha Fin</mat-label>
+          <input matInput type="date" formControlName="endDate" />
+        </mat-form-field>
+      </div>
+      @if (form.hasError('invalidRange')) {
+        <p class="field-error">La fecha fin debe ser posterior o igual a la fecha inicio.</p>
+      }
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Formato de Exportación</label>
+      <div class="format-row">
+        <button
+          type="button"
+          class="format-card"
+          [class.format-card--active]="form.value.format === 'pdf'"
+          (click)="selectFormat('pdf')"
+        >
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span class="format-title">PDF</span>
+          <span class="format-subtitle">Documento portable</span>
+        </button>
+        <button
+          type="button"
+          class="format-card"
+          [class.format-card--active]="form.value.format === 'excel'"
+          (click)="selectFormat('excel')"
+        >
+          <mat-icon>table_chart</mat-icon>
+          <span class="format-title">Excel</span>
+          <span class="format-subtitle">Hoja de cálculo</span>
+        </button>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button mat-stroked-button type="button" class="cancel-btn" (click)="cancel()">Cancelar</button>
+      <button mat-flat-button type="submit" class="export-btn" [disabled]="form.invalid || exporting()">
+        <mat-icon>download</mat-icon>
+        {{ exporting() ? 'Exportando...' : 'Exportar' }}
+      </button>
+    </footer>
+  </form>
+</div>
